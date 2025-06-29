@@ -8,6 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import {
   Bold,
   Italic,
@@ -37,6 +38,10 @@ import {
   X,
   Replace,
   CornerDownLeft,
+  FileText,
+  Edit,
+  MoreHorizontal,
+  Palette
 } from "lucide-react"
 
 interface RichTextEditorProps {
@@ -742,30 +747,43 @@ const RichTextEditor = forwardRef(function RichTextEditor({ initialContent = "",
   return (
     <div className={`flex flex-col h-full ${className}`}>
       {/* Toolbar */}
-      <div className="flex items-center px-4 py-2 border-b bg-muted/30 dark:bg-muted/60 space-x-1 overflow-x-auto">
+      <div className="flex items-center px-4 py-2 border-b bg-muted/30 dark:bg-muted/60 space-x-1 overflow-x-auto relative">
         {/* Undo/Redo */}
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={() => {
-            handleCommand("undo")
-            toast.success(t('toast.undo'))
-          }} 
-          title={`${t('editor.undo')} (Ctrl+Z)`}
-        >
-          <Undo className="w-4 h-4" />
-        </Button>
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={() => {
-            handleCommand("redo")
-            toast.success(t('toast.redo'))
-          }} 
-          title={`${t('editor.redo')} (Ctrl+Y)`}
-        >
-          <Redo className="w-4 h-4" />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => {
+                handleCommand("undo")
+                toast.success(t('toast.undo'))
+              }} 
+            >
+              <Undo className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <p>{`${t('editor.undo')} (Ctrl+Z)`}</p>
+          </TooltipContent>
+        </Tooltip>
+        
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => {
+                handleCommand("redo")
+                toast.success(t('toast.redo'))
+              }} 
+            >
+              <Redo className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <p>{`${t('editor.redo')} (Ctrl+Y)`}</p>
+          </TooltipContent>
+        </Tooltip>
 
         <Separator orientation="vertical" className="h-6 mx-2" />
 
@@ -786,7 +804,7 @@ const RichTextEditor = forwardRef(function RichTextEditor({ initialContent = "",
 
         {/* Font Size */}
         <Select defaultValue="3" onValueChange={(value) => handleCommand("fontSize", value)}>
-          <SelectTrigger className="w-16 h-8">
+          <SelectTrigger className="w-20 h-8">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -819,252 +837,296 @@ const RichTextEditor = forwardRef(function RichTextEditor({ initialContent = "",
         <Separator orientation="vertical" className="h-6 mx-2" />
 
         {/* Text Formatting */}
-        <Button variant="ghost" size="sm" onClick={() => handleCommand("bold")} title={`${t('editor.bold')} (Ctrl+B)`}>
-          <Bold className="w-4 h-4" />
-        </Button>
-        <Button variant="ghost" size="sm" onClick={() => handleCommand("italic")} title={`${t('editor.italic')} (Ctrl+I)`}>
-          <Italic className="w-4 h-4" />
-        </Button>
-        <Button variant="ghost" size="sm" onClick={() => handleCommand("underline")} title={`${t('editor.underline')} (Ctrl+U)`}>
-          <Underline className="w-4 h-4" />
-        </Button>
-        <Button variant="ghost" size="sm" onClick={() => handleCommand("strikeThrough")} title={t('editor.strikethrough')}>
-          <Strikethrough className="w-4 h-4" />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="sm" onClick={() => handleCommand("bold")}>
+              <Bold className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <p>{`${t('editor.bold')} (Ctrl+B)`}</p>
+          </TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="sm" onClick={() => handleCommand("italic")}>
+              <Italic className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <p>{`${t('editor.italic')} (Ctrl+I)`}</p>
+          </TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="sm" onClick={() => handleCommand("underline")}>
+              <Underline className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <p>{`${t('editor.underline')} (Ctrl+U)`}</p>
+          </TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="sm" onClick={() => handleCommand("strikethrough")}>
+              <Strikethrough className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <p>{t('editor.strikethrough')}</p>
+          </TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="sm" onClick={() => handleCommand("formatBlock", "pre")}>
+              <Code className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <p>{t('editor.code')}</p>
+          </TooltipContent>
+        </Tooltip>
 
         <Separator orientation="vertical" className="h-6 mx-2" />
 
         {/* Text Color */}
-        <Popover open={showColorPicker} onOpenChange={setShowColorPicker}>
-          <PopoverTrigger asChild>
-            <Button variant="ghost" size="sm" title={t('editor.textColor')}>
-              <Type className="w-4 h-4" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-64">
-            <div className="grid grid-cols-6 gap-2">
-              {colors.map((color) => (
-                <button
-                  key={color}
-                  className="w-8 h-8 rounded border border-border hover:scale-110 transition-transform"
-                  style={{ backgroundColor: color }}
-                  onClick={() => {
-                    handleCommand("foreColor", color)
-                    setShowColorPicker(false)
-                  }}
-                />
-              ))}
-            </div>
-          </PopoverContent>
-        </Popover>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Popover open={showColorPicker} onOpenChange={setShowColorPicker}>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  <Palette className="w-4 h-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64">
+                <div className="grid grid-cols-6 gap-2">
+                  {colors.map((color) => (
+                    <button
+                      key={color}
+                      className="w-8 h-8 rounded border border-border hover:scale-110 transition-transform"
+                      style={{ backgroundColor: color }}
+                      onClick={() => {
+                        handleCommand("foreColor", color)  
+                        setShowColorPicker(false)
+                      }}
+                    />
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <p>{t('editor.textColor')}</p>
+          </TooltipContent>
+        </Tooltip>
 
         {/* Highlight Color */}
-        <Popover open={showHighlightPicker} onOpenChange={setShowHighlightPicker}>
-          <PopoverTrigger asChild>
-            <Button variant="ghost" size="sm" title={t('editor.highlightColor')}>
-              <Highlighter className="w-4 h-4" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-64">
-            <div className="grid grid-cols-6 gap-2">
-              {colors.map((color) => (
-                <button
-                  key={color}
-                  className="w-8 h-8 rounded border border-border hover:scale-110 transition-transform"
-                  style={{ backgroundColor: color }}
-                  onClick={() => {
-                    handleCommand("hiliteColor", color)
-                    setShowHighlightPicker(false)
-                  }}
-                />
-              ))}
-            </div>
-          </PopoverContent>
-        </Popover>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Popover open={showHighlightPicker} onOpenChange={setShowHighlightPicker}>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  <Highlighter className="w-4 h-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64">
+                <div className="grid grid-cols-6 gap-2">
+                  {colors.map((color) => (
+                    <button
+                      key={color}
+                      className="w-8 h-8 rounded border border-border hover:scale-110 transition-transform"
+                      style={{ backgroundColor: color }}
+                      onClick={() => {
+                        handleCommand("hiliteColor", color)
+                        setShowHighlightPicker(false)
+                      }}
+                    />
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <p>{t('editor.highlightColor')}</p>
+          </TooltipContent>
+        </Tooltip>
 
         <Separator orientation="vertical" className="h-6 mx-2" />
 
         {/* Alignment */}
-        <Button variant="ghost" size="sm" onClick={() => handleCommand("justifyLeft")} title={t('editor.alignLeft')}>
-          <AlignLeft className="w-4 h-4" />
-        </Button>
-        <Button variant="ghost" size="sm" onClick={() => handleCommand("justifyCenter")} title={t('editor.alignCenter')}>
-          <AlignCenter className="w-4 h-4" />
-        </Button>
-        <Button variant="ghost" size="sm" onClick={() => handleCommand("justifyRight")} title={t('editor.alignRight')}>
-          <AlignRight className="w-4 h-4" />
-        </Button>
-        <Button variant="ghost" size="sm" onClick={() => handleCommand("justifyFull")} title={t('editor.alignJustify')}>
-          <AlignJustify className="w-4 h-4" />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="sm" onClick={() => handleCommand("justifyLeft")}>
+              <AlignLeft className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <p>{t('editor.alignLeft')}</p>
+          </TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="sm" onClick={() => handleCommand("justifyCenter")}>
+              <AlignCenter className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <p>{t('editor.alignCenter')}</p>
+          </TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="sm" onClick={() => handleCommand("justifyRight")}>
+              <AlignRight className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <p>{t('editor.alignRight')}</p>
+          </TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="sm" onClick={() => handleCommand("justifyFull")}>
+              <AlignJustify className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <p>{t('editor.alignJustify')}</p>
+          </TooltipContent>
+        </Tooltip>
 
         <Separator orientation="vertical" className="h-6 mx-2" />
 
         {/* Lists */}
-        <Button variant="ghost" size="sm" onClick={() => handleCommand("insertUnorderedList")} title={t('editor.unorderedList')}>
-          <List className="w-4 h-4" />
-        </Button>
-        <Button variant="ghost" size="sm" onClick={() => handleCommand("insertOrderedList")} title={t('editor.orderedList')}>
-          <ListOrdered className="w-4 h-4" />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="sm" onClick={() => handleCommand("insertUnorderedList")}>
+              <List className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <p>{t('editor.unorderedList')}</p>
+          </TooltipContent>
+        </Tooltip>
 
-        {/* Indent */}
-        <Button variant="ghost" size="sm" onClick={() => handleCommand("indent")} title={t('editor.increaseIndent')}>
-          <Indent className="w-4 h-4" />
-        </Button>
-        <Button variant="ghost" size="sm" onClick={() => handleCommand("outdent")} title={t('editor.decreaseIndent')}>
-          <Outdent className="w-4 h-4" />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="sm" onClick={() => handleCommand("insertOrderedList")}>
+              <ListOrdered className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <p>{t('editor.orderedList')}</p>
+          </TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="sm" onClick={() => handleCommand("formatBlock", "blockquote")}>
+              <Quote className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <p>{t('editor.quote')}</p>
+          </TooltipContent>
+        </Tooltip>
 
         <Separator orientation="vertical" className="h-6 mx-2" />
 
-        {/* Insert Link */}
-        <Popover open={showLinkDialog} onOpenChange={setShowLinkDialog}>
-          <PopoverTrigger asChild>
-            <Button variant="ghost" size="sm" title={t('editor.insertLink')}>
+        {/* Insert */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="sm" onClick={handleInsertLink}>
               <Link className="w-4 h-4" />
             </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-80">
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="link-text">{t('editor.linkText')}</Label>
-                <Input
-                  id="link-text"
-                  value={linkText}
-                  onChange={(e) => setLinkText(e.target.value)}
-                  placeholder={t('editor.enterLinkText')}
-                />
-              </div>
-              <div>
-                <Label htmlFor="link-url">URL</Label>
-                <Input
-                  id="link-url"
-                  value={linkUrl}
-                  onChange={(e) => setLinkUrl(e.target.value)}
-                  placeholder="https://example.com"
-                />
-              </div>
-              <div className="flex justify-end space-x-2">
-                <Button variant="outline" size="sm" onClick={() => setShowLinkDialog(false)}>
-                  {t('common.cancel')}
-                </Button>
-                <Button size="sm" onClick={handleInsertLink}>
-                  {t('editor.insertLink')}
-                </Button>
-              </div>
-            </div>
-          </PopoverContent>
-        </Popover>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <p>{t('editor.insertLink')}</p>
+          </TooltipContent>
+        </Tooltip>
 
-        {/* Insert Image */}
-        <Popover open={showImageDialog} onOpenChange={setShowImageDialog}>
-          <PopoverTrigger asChild>
-            <Button variant="ghost" size="sm" title="Insert Image">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="sm" onClick={handleInsertImage}>
               <ImageIcon className="w-4 h-4" />
             </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-80">
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="image-url">Image URL</Label>
-                <Input
-                  id="image-url"
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  placeholder="https://example.com/image.jpg"
-                />
-              </div>
-              <div>
-                <Label htmlFor="image-alt">Alt Text</Label>
-                <Input
-                  id="image-alt"
-                  value={imageAlt}
-                  onChange={(e) => setImageAlt(e.target.value)}
-                  placeholder="Image description"
-                />
-              </div>
-              <div className="flex justify-end space-x-2">
-                <Button variant="outline" size="sm" onClick={() => setShowImageDialog(false)}>
-                  Cancel
-                </Button>
-                <Button size="sm" onClick={handleInsertImage}>
-                  Insert Image
-                </Button>
-              </div>
-            </div>
-          </PopoverContent>
-        </Popover>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <p>{t('editor.insertImage')}</p>
+          </TooltipContent>
+        </Tooltip>
 
-        {/* Insert Table */}
-        <Popover open={showTableDialog} onOpenChange={setShowTableDialog}>
-          <PopoverTrigger asChild>
-            <Button variant="ghost" size="sm" title="Insert Table">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="sm" onClick={handleInsertTable}>
               <Table className="w-4 h-4" />
             </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-64">
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="table-rows">Rows</Label>
-                <Input
-                  id="table-rows"
-                  type="number"
-                  value={tableRows}
-                  onChange={(e) => setTableRows(Number.parseInt(e.target.value) || 3)}
-                  min="1"
-                  max="20"
-                />
-              </div>
-              <div>
-                <Label htmlFor="table-cols">Columns</Label>
-                <Input
-                  id="table-cols"
-                  type="number"
-                  value={tableCols}
-                  onChange={(e) => setTableCols(Number.parseInt(e.target.value) || 3)}
-                  min="1"
-                  max="10"
-                />
-              </div>
-              <div className="flex justify-end space-x-2">
-                <Button variant="outline" size="sm" onClick={() => setShowTableDialog(false)}>
-                  Cancel
-                </Button>
-                <Button size="sm" onClick={handleInsertTable}>
-                  Insert Table
-                </Button>
-              </div>
-            </div>
-          </PopoverContent>
-        </Popover>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <p>{t('editor.insertTable')}</p>
+          </TooltipContent>
+        </Tooltip>
 
-        {/* Quote */}
-        <Button variant="ghost" size="sm" onClick={() => handleCommand("formatBlock", "<blockquote>")} title="Quote">
-          <Quote className="w-4 h-4" />
-        </Button>
+        {/* Indent */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="sm" onClick={() => handleCommand("indent")}>
+              <Indent className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <p>{t('editor.increaseIndent')}</p>
+          </TooltipContent>
+        </Tooltip>
 
-        {/* Code */}
-        <Button variant="ghost" size="sm" onClick={() => handleCommand("formatBlock", "<pre>")} title="Code Block">
-          <Code className="w-4 h-4" />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="sm" onClick={() => handleCommand("outdent")}>
+              <Outdent className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <p>{t('editor.decreaseIndent')}</p>
+          </TooltipContent>
+        </Tooltip>
 
         <Separator orientation="vertical" className="h-6 mx-2" />
 
         {/* Search */}
-        <Button
-          variant="ghost"
-          size="sm"
-          title="Find & Replace (Ctrl+F)"
-          onClick={() => setShowSearchBar(!showSearchBar)}
-        >
-          <Search className="w-4 h-4" />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowSearchBar(!showSearchBar)}
+            >
+              <Search className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <p>查找和替换 (Ctrl+F)</p>
+          </TooltipContent>
+        </Tooltip>
 
-        {/* Clear Formatting */}
-        <Button variant="ghost" size="sm" onClick={() => handleCommand("removeFormat")} title="Clear Formatting">
-          <RemoveFormatting className="w-4 h-4" />
-        </Button>
+        {/* Clear Format */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="sm" onClick={() => handleCommand("removeFormat")}>
+              <RemoveFormatting className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <p>{t('editor.clearFormat')}</p>
+          </TooltipContent>
+        </Tooltip>
       </div>
 
       {/* Search Bar */}

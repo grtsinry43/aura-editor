@@ -6,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { X, Search, Hash, Type, ImageIcon, FileText, List, Quote, Link2, Clock } from "lucide-react"
 import { useDebounce as useDebounceHook } from "@/hooks/use-debounce"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 
 const Highlight = ({ text, highlight }: { text: string; highlight: string }) => {
   if (!highlight.trim()) {
@@ -58,6 +59,7 @@ export default function DocumentSidebar({ onClose, documentContent }: DocumentSi
   const { t } = useTranslation()
   const [searchQuery, setSearchQuery] = useState("")
   const [isCompactMode, setIsCompactMode] = useState(false)
+  const [showSearch, setShowSearch] = useState(false)
   const [documentOutline, setDocumentOutline] = useState<OutlineItem[]>([])
   const [documentStats, setDocumentStats] = useState<DocumentStats>({
     words: 0,
@@ -223,29 +225,57 @@ export default function DocumentSidebar({ onClose, documentContent }: DocumentSi
     return num.toLocaleString()
   }
 
+  // Clear search query when search is hidden
+  useEffect(() => {
+    if (!showSearch) {
+      setSearchQuery('')
+    }
+  }, [showSearch])
+
   return (
     <div className="w-80 sm:w-64 lg:w-64 border-r bg-background/95 backdrop-blur-sm lg:bg-muted/30 flex flex-col h-full shadow-lg lg:shadow-none">
       {/* Header */}
       <div className="flex items-center justify-between p-3 sm:p-4 border-b bg-background/90 backdrop-blur-sm">
         <h3 className="font-semibold text-sm sm:text-base">{t('sidebar.outline')}</h3>
         <div className="flex items-center space-x-2">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => setIsCompactMode(!isCompactMode)}
-            className="p-1.5 h-7 w-7"
-            title={isCompactMode ? "展开模式" : "紧凑模式"}
-          >
-            {isCompactMode ? (
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
-              </svg>
-            ) : (
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-            )}
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setShowSearch(!showSearch)}
+                className="p-1.5 h-7 w-7"
+              >
+                <Search className="w-3 h-3" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{showSearch ? "隐藏搜索" : "搜索标题"}</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setIsCompactMode(!isCompactMode)}
+                className="p-1.5 h-7 w-7"
+              >
+                {isCompactMode ? (
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
+                  </svg>
+                ) : (
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{isCompactMode ? "展开模式" : "紧凑模式"}</p>
+            </TooltipContent>
+          </Tooltip>
           <Button variant="ghost" size="sm" onClick={onClose} className="lg:hidden p-2">
             <X className="w-4 h-4" />
           </Button>
@@ -253,17 +283,20 @@ export default function DocumentSidebar({ onClose, documentContent }: DocumentSi
       </div>
 
       {/* Search */}
-      <div className="p-3 sm:p-4 bg-background/50">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder={t('sidebar.searchPlaceholder')}
-            className="pl-10 h-9 text-sm"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+      {showSearch && (
+        <div className="p-3 sm:p-4 bg-background/50 border-b">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder={t('sidebar.searchPlaceholder')}
+              className="pl-10 h-9 text-sm"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              autoFocus
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Outline */}
       <ScrollArea className="flex-1 px-3 sm:px-4 sidebar-scrollbar">
@@ -305,124 +338,112 @@ export default function DocumentSidebar({ onClose, documentContent }: DocumentSi
 
         {/* Document Stats */}
         <div className="space-y-3 pb-4">
-          <div className="flex items-center justify-between">
-            <h4 className="font-semibold text-xs text-muted-foreground uppercase tracking-wide">{t('sidebar.statistics')}</h4>
-            <div className="h-px flex-1 bg-gradient-to-r from-border to-transparent ml-2"></div>
+          <div className="flex items-center space-x-2">
+            <h4 className="font-medium text-xs text-muted-foreground/60 uppercase tracking-wide">{t('sidebar.statistics')}</h4>
+            <div className="flex-1 h-px bg-gradient-to-r from-border/20 to-transparent"></div>
           </div>
           
-          {/* Two-column compact layout */}
-          <div className="grid grid-cols-2 gap-1 text-xs">
-            {/* Row 1 */}
-            <div className="flex flex-col items-center p-2 rounded-md bg-blue-50/40 dark:bg-blue-950/20 border border-blue-200/30 dark:border-blue-800/20 hover:bg-blue-50/60 dark:hover:bg-blue-950/30 transition-all duration-200">
-              <div className="flex items-center space-x-1 mb-1">
-                <div className="p-0.5 rounded bg-blue-500/10">
-                  <Type className="w-2 h-2 text-blue-600 dark:text-blue-400" />
-                </div>
-                <span className="text-blue-700 dark:text-blue-300 font-medium truncate">{formatNumber(documentStats.words)}</span>
+          {/* Ultra-minimal stats grid */}
+          <div className="grid grid-cols-3 gap-3 px-1">
+            {/* Row 1 - Primary stats */}
+            <div className="text-center group cursor-default">
+              <div className="flex items-center justify-center space-x-1 mb-0.5">
+                <div className="w-1 h-1 rounded-full bg-blue-500/60"></div>
+                <span className="text-sm font-semibold text-foreground">{formatNumber(documentStats.words)}</span>
               </div>
-              <span className="text-xs text-muted-foreground/80 leading-none">字数</span>
+              <div className="text-xs text-muted-foreground/70">字数</div>
             </div>
 
-            <div className="flex flex-col items-center p-2 rounded-md bg-green-50/40 dark:bg-green-950/20 border border-green-200/30 dark:border-green-800/20 hover:bg-green-50/60 dark:hover:bg-green-950/30 transition-all duration-200">
-              <div className="flex items-center space-x-1 mb-1">
-                <div className="p-0.5 rounded bg-green-500/10">
-                  <FileText className="w-2 h-2 text-green-600 dark:text-green-400" />
-                </div>
-                <span className="text-green-700 dark:text-green-300 font-medium truncate">{formatNumber(documentStats.characters)}</span>
+            <div className="text-center group cursor-default">
+              <div className="flex items-center justify-center space-x-1 mb-0.5">
+                <div className="w-1 h-1 rounded-full bg-green-500/60"></div>
+                <span className="text-sm font-semibold text-foreground">{formatNumber(documentStats.characters)}</span>
               </div>
-              <span className="text-xs text-muted-foreground/80 leading-none">字符</span>
+              <div className="text-xs text-muted-foreground/70">字符</div>
             </div>
 
-            {/* Row 2 */}
-            <div className="flex flex-col items-center p-2 rounded-md bg-orange-50/40 dark:bg-orange-950/20 border border-orange-200/30 dark:border-orange-800/20 hover:bg-orange-50/60 dark:hover:bg-orange-950/30 transition-all duration-200">
-              <div className="flex items-center space-x-1 mb-1">
-                <div className="p-0.5 rounded bg-orange-500/10">
-                  <FileText className="w-2 h-2 text-orange-600 dark:text-orange-400" />
-                </div>
-                <span className="text-orange-700 dark:text-orange-300 font-medium truncate">{formatNumber(documentStats.sentences)}</span>
+            <div className="text-center group cursor-default">
+              <div className="flex items-center justify-center space-x-1 mb-0.5">
+                <div className="w-1 h-1 rounded-full bg-red-500/60"></div>
+                <span className="text-sm font-semibold text-foreground">{documentStats.readingTime}</span>
               </div>
-              <span className="text-xs text-muted-foreground/80 leading-none">句子</span>
+              <div className="text-xs text-muted-foreground/70">分钟</div>
             </div>
 
-            <div className="flex flex-col items-center p-2 rounded-md bg-slate-50/40 dark:bg-slate-950/20 border border-slate-200/30 dark:border-slate-800/20 hover:bg-slate-50/60 dark:hover:bg-slate-950/30 transition-all duration-200">
-              <div className="flex items-center space-x-1 mb-1">
-                <div className="p-0.5 rounded bg-slate-500/10">
-                  <FileText className="w-2 h-2 text-slate-600 dark:text-slate-400" />
-                </div>
-                <span className="text-slate-700 dark:text-slate-300 font-medium truncate">{formatNumber(documentStats.paragraphs)}</span>
+            {/* Row 2 - Secondary stats */}
+            <div className="text-center group cursor-default">
+              <div className="flex items-center justify-center space-x-1 mb-0.5">
+                <div className="w-1 h-1 rounded-full bg-orange-500/60"></div>
+                <span className="text-sm font-medium text-muted-foreground">{formatNumber(documentStats.sentences)}</span>
               </div>
-              <span className="text-xs text-muted-foreground/80 leading-none">段落</span>
+              <div className="text-xs text-muted-foreground/70">句子</div>
             </div>
 
-            {/* Row 3 */}
-            <div className="flex flex-col items-center p-2 rounded-md bg-indigo-50/40 dark:bg-indigo-950/20 border border-indigo-200/30 dark:border-indigo-800/20 hover:bg-indigo-50/60 dark:hover:bg-indigo-950/30 transition-all duration-200">
-              <div className="flex items-center space-x-1 mb-1">
-                <div className="p-0.5 rounded bg-indigo-500/10">
-                  <Hash className="w-2 h-2 text-indigo-600 dark:text-indigo-400" />
-                </div>
-                <span className="text-indigo-700 dark:text-indigo-300 font-medium truncate">{documentStats.headings}</span>
+            <div className="text-center group cursor-default">
+              <div className="flex items-center justify-center space-x-1 mb-0.5">
+                <div className="w-1 h-1 rounded-full bg-slate-500/60"></div>
+                <span className="text-sm font-medium text-muted-foreground">{formatNumber(documentStats.paragraphs)}</span>
               </div>
-              <span className="text-xs text-muted-foreground/80 leading-none">标题</span>
+              <div className="text-xs text-muted-foreground/70">段落</div>
             </div>
 
-            <div className="flex flex-col items-center p-2 rounded-md bg-red-50/40 dark:bg-red-950/20 border border-red-200/30 dark:border-red-800/20 hover:bg-red-50/60 dark:hover:bg-red-950/30 transition-all duration-200">
-              <div className="flex items-center space-x-1 mb-1">
-                <div className="p-0.5 rounded bg-red-500/10">
-                  <Clock className="w-2 h-2 text-red-600 dark:text-red-400" />
-                </div>
-                <span className="text-red-700 dark:text-red-300 font-medium truncate">{documentStats.readingTime}分</span>
+            <div className="text-center group cursor-default">
+              <div className="flex items-center justify-center space-x-1 mb-0.5">
+                <div className="w-1 h-1 rounded-full bg-indigo-500/60"></div>
+                <span className="text-sm font-medium text-muted-foreground">{documentStats.headings}</span>
               </div>
-              <span className="text-xs text-muted-foreground/80 leading-none">阅读</span>
+              <div className="text-xs text-muted-foreground/70">标题</div>
             </div>
 
-            {/* Conditional Stats - Only show if > 0 */}
+            {/* Conditional stats - only show if > 0 */}
             {documentStats.images > 0 && (
-              <div className="flex flex-col items-center p-2 rounded-md bg-pink-50/40 dark:bg-pink-950/20 border border-pink-200/30 dark:border-pink-800/20 hover:bg-pink-50/60 dark:hover:bg-pink-950/30 transition-all duration-200">
-                <div className="flex items-center space-x-1 mb-1">
-                  <div className="p-0.5 rounded bg-pink-500/10">
-                    <ImageIcon className="w-2 h-2 text-pink-600 dark:text-pink-400" />
-                  </div>
-                  <span className="text-pink-700 dark:text-pink-300 font-medium truncate">{documentStats.images}</span>
+              <div className="text-center group cursor-default">
+                <div className="flex items-center justify-center space-x-1 mb-0.5">
+                  <div className="w-1 h-1 rounded-full bg-pink-500/60"></div>
+                  <span className="text-sm font-medium text-muted-foreground">{documentStats.images}</span>
                 </div>
-                <span className="text-xs text-muted-foreground/80 leading-none">图片</span>
+                <div className="text-xs text-muted-foreground/70">图片</div>
               </div>
             )}
 
             {documentStats.links > 0 && (
-              <div className="flex flex-col items-center p-2 rounded-md bg-cyan-50/40 dark:bg-cyan-950/20 border border-cyan-200/30 dark:border-cyan-800/20 hover:bg-cyan-50/60 dark:hover:bg-cyan-950/30 transition-all duration-200">
-                <div className="flex items-center space-x-1 mb-1">
-                  <div className="p-0.5 rounded bg-cyan-500/10">
-                    <Link2 className="w-2 h-2 text-cyan-600 dark:text-cyan-400" />
-                  </div>
-                  <span className="text-cyan-700 dark:text-cyan-300 font-medium truncate">{documentStats.links}</span>
+              <div className="text-center group cursor-default">
+                <div className="flex items-center justify-center space-x-1 mb-0.5">
+                  <div className="w-1 h-1 rounded-full bg-cyan-500/60"></div>
+                  <span className="text-sm font-medium text-muted-foreground">{documentStats.links}</span>
                 </div>
-                <span className="text-xs text-muted-foreground/80 leading-none">链接</span>
+                <div className="text-xs text-muted-foreground/70">链接</div>
               </div>
             )}
 
             {documentStats.lists > 0 && (
-              <div className="flex flex-col items-center p-2 rounded-md bg-yellow-50/40 dark:bg-yellow-950/20 border border-yellow-200/30 dark:border-yellow-800/20 hover:bg-yellow-50/60 dark:hover:bg-yellow-950/30 transition-all duration-200">
-                <div className="flex items-center space-x-1 mb-1">
-                  <div className="p-0.5 rounded bg-yellow-500/10">
-                    <List className="w-2 h-2 text-yellow-600 dark:text-yellow-400" />
-                  </div>
-                  <span className="text-yellow-700 dark:text-yellow-300 font-medium truncate">{documentStats.lists}</span>
+              <div className="text-center group cursor-default">
+                <div className="flex items-center justify-center space-x-1 mb-0.5">
+                  <div className="w-1 h-1 rounded-full bg-yellow-500/60"></div>
+                  <span className="text-sm font-medium text-muted-foreground">{documentStats.lists}</span>
                 </div>
-                <span className="text-xs text-muted-foreground/80 leading-none">列表</span>
+                <div className="text-xs text-muted-foreground/70">列表</div>
               </div>
             )}
 
             {documentStats.quotes > 0 && (
-              <div className="flex flex-col items-center p-2 rounded-md bg-teal-50/40 dark:bg-teal-950/20 border border-teal-200/30 dark:border-teal-800/20 hover:bg-teal-50/60 dark:hover:bg-teal-950/30 transition-all duration-200">
-                <div className="flex items-center space-x-1 mb-1">
-                  <div className="p-0.5 rounded bg-teal-500/10">
-                    <Quote className="w-2 h-2 text-teal-600 dark:text-teal-400" />
-                  </div>
-                  <span className="text-teal-700 dark:text-teal-300 font-medium truncate">{documentStats.quotes}</span>
+              <div className="text-center group cursor-default">
+                <div className="flex items-center justify-center space-x-1 mb-0.5">
+                  <div className="w-1 h-1 rounded-full bg-teal-500/60"></div>
+                  <span className="text-sm font-medium text-muted-foreground">{documentStats.quotes}</span>
                 </div>
-                <span className="text-xs text-muted-foreground/80 leading-none">引用</span>
+                <div className="text-xs text-muted-foreground/70">引用</div>
               </div>
             )}
+          </div>
+
+          {/* Ultra-subtle divider */}
+          <div className="flex items-center justify-center pt-2">
+            <div className="flex space-x-1">
+              <div className="w-1 h-1 rounded-full bg-muted-foreground/20"></div>
+              <div className="w-1 h-1 rounded-full bg-muted-foreground/10"></div>
+              <div className="w-1 h-1 rounded-full bg-muted-foreground/5"></div>
+            </div>
           </div>
 
           {/* Coming Soon: Summary Feature */}

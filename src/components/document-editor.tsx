@@ -11,6 +11,7 @@ import EditorContextMenu from "./editor-context-menu"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
 import { LanguageToggle } from "./language-toggle"
 import { toast } from "sonner"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 
 // 中英文版本的编辑器介绍内容
 const getWelcomeContent = (language: string) => {
@@ -394,6 +395,7 @@ export default function DocumentEditor() {
             <div className="w-6 h-6 sm:w-8 sm:h-8 bg-primary rounded-lg flex items-center justify-center shrink-0">
               <span className="text-primary-foreground font-bold text-xs sm:text-sm">A</span>
             </div>
+            
             <div className="flex flex-col min-w-0 flex-1">
               {isEditing ? (
                 <Input
@@ -402,15 +404,16 @@ export default function DocumentEditor() {
                   onChange={(e) => setDocumentTitle(e.target.value)}
                   onBlur={handleTitleSave}
                   onKeyDown={handleTitleKeyDown}
-                  className="text-sm sm:text-lg font-semibold border-none p-0 h-auto focus-visible:ring-0 bg-muted px-2 py-1 rounded"
+                  placeholder={i18n.language === 'zh' ? '未命名文档' : 'Untitled Document'}
+                  className="text-sm sm:text-lg font-semibold border-none p-0 h-auto focus-visible:ring-0 bg-muted px-2 py-1 rounded max-w-xs"
                 />
               ) : (
                 <h1
-                  className="text-sm sm:text-lg font-semibold cursor-pointer hover:bg-muted px-2 py-1 rounded truncate"
+                  className="text-sm sm:text-lg font-semibold cursor-pointer hover:bg-muted px-2 py-1 rounded truncate max-w-xs"
                   onClick={handleTitleEdit}
-                  title={documentTitle}
+                  title={documentTitle || (i18n.language === 'zh' ? '未命名文档' : 'Untitled Document')}
                 >
-                  {documentTitle}
+                  {documentTitle || (i18n.language === 'zh' ? '未命名文档' : 'Untitled Document')}
                 </h1>
               )}
               <div className="hidden sm:flex items-center space-x-2 text-xs text-muted-foreground">
@@ -441,22 +444,43 @@ export default function DocumentEditor() {
             <LanguageToggle />
             <ThemeToggle />
             
-            <Button variant="ghost" size="sm" title={t('actions.star')}>
-              <Star className="w-4 h-4" />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  <Star className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{t('actions.star')}</p>
+              </TooltipContent>
+            </Tooltip>
 
-            <Button variant="ghost" size="sm" title={t('common.download')}>
-              <Download className="w-4 h-4" />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  <Download className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{t('common.download')}</p>
+              </TooltipContent>
+            </Tooltip>
 
             <Button className="bg-primary hover:bg-primary/90">
               <Share2 className="w-4 h-4 mr-2" />
               {t('common.share')}
             </Button>
 
-            <Button variant="ghost" size="sm" title={t('common.more')}>
-              <MoreHorizontal className="w-4 h-4" />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  <MoreHorizontal className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{t('common.more')}</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
         </div>
       </header>
