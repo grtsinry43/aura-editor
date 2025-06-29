@@ -1,12 +1,14 @@
 import type React from "react"
 
 import { useState, useRef, useEffect } from "react"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Share2, Download, Star, Clock, MoreHorizontal, Menu } from "lucide-react"
 import DocumentSidebar from "./document-sidebar"
 import RichTextEditor from "./rich-text-editor"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
+import { LanguageToggle } from "./language-toggle"
 
 const initialContent = `
 <h1>Project Proposal: Next-Generation Collaboration Platform</h1>
@@ -50,12 +52,14 @@ const initialContent = `
 `
 
 export default function DocumentEditor() {
-  const [documentTitle, setDocumentTitle] = useState("Project Proposal Document")
+  const { t } = useTranslation()
+  const [documentTitle, setDocumentTitle] = useState(t('document.title'))
   const [showSidebar, setShowSidebar] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
   const [lastSaved, setLastSaved] = useState<Date>()
   const [documentContent, setDocumentContent] = useState(initialContent)
   const titleInputRef = useRef<HTMLInputElement>(null)
+  const editorRef = useRef<any>(null)
 
   const handleTitleEdit = () => {
     setIsEditing(true)
@@ -88,6 +92,13 @@ export default function DocumentEditor() {
     }, 30000) // Auto-save every 30 seconds
 
     return () => clearInterval(interval)
+  }, [])
+
+  useEffect(() => {
+    // 挂载后主动同步一次内容
+    if (editorRef.current) {
+      setDocumentContent(editorRef.current.getContent())
+    }
   }, [])
 
   return (
@@ -123,13 +134,14 @@ export default function DocumentEditor() {
               )}
               <div className="flex items-center space-x-2 text-xs text-muted-foreground">
                 <Clock className="w-3 h-3" />
-                {lastSaved && <span>Last saved {lastSaved.toLocaleTimeString()}</span>}
+                {lastSaved && <span>{t('document.lastSaved')} {lastSaved.toLocaleTimeString()}</span>}
               </div>
             </div>
           </div>
         </div>
 
         <div className="flex items-center space-x-3">
+          <LanguageToggle />
           <ThemeToggle />
           
           <Button variant="ghost" size="sm">
@@ -142,7 +154,7 @@ export default function DocumentEditor() {
 
           <Button className="bg-primary hover:bg-primary/90">
             <Share2 className="w-4 h-4 mr-2" />
-            Share
+            {t('common.share')}
           </Button>
 
           <Button variant="ghost" size="sm">
@@ -158,7 +170,7 @@ export default function DocumentEditor() {
 
         {/* Editor Area */}
         <div className="flex-1 overflow-hidden editor-scrollbar">
-          <RichTextEditor initialContent={initialContent} onChange={handleContentChange} />
+          <RichTextEditor ref={editorRef} initialContent={initialContent} onChange={handleContentChange} />
         </div>
       </div>
     </div>

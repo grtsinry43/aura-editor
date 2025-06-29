@@ -1,6 +1,6 @@
-import type React from "react"
+import React, { useState, useRef, useEffect, useCallback, useImperativeHandle, forwardRef } from "react"
 
-import { useState, useRef, useEffect, useCallback } from "react"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -44,9 +44,15 @@ interface RichTextEditorProps {
   className?: string
 }
 
-export default function RichTextEditor({ initialContent = "", onChange, className = "" }: RichTextEditorProps) {
+const RichTextEditor = forwardRef(function RichTextEditor({ initialContent = "", onChange, className = "" }: RichTextEditorProps, ref) {
+  const { t } = useTranslation()
   const editorRef = useRef<HTMLDivElement>(null)
   const [content, setContent] = useState(initialContent)
+  const [isInitialized, setIsInitialized] = useState(false)
+
+  useImperativeHandle(ref, () => ({
+    getContent: () => editorRef.current?.innerHTML || ""
+  }))
 
   // Dialog states
   const [showLinkDialog, setShowLinkDialog] = useState(false)
@@ -91,21 +97,30 @@ export default function RichTextEditor({ initialContent = "", onChange, classNam
     "#9966FF",
   ]
 
-  // Initialize editor content
-  useEffect(() => {
-    if (editorRef.current && initialContent) {
-      editorRef.current.innerHTML = initialContent
-    }
-  }, [initialContent])
-
   // Handle content changes
   const handleContentChange = useCallback(() => {
     if (editorRef.current) {
       const newContent = editorRef.current.innerHTML
       setContent(newContent)
-      onChange?.(newContent)
+      // 只有在初始化完成后才触发onChange，避免初始化时的循环
+      if (isInitialized) {
+        onChange?.(newContent)
+      }
     }
-  }, [onChange])
+  }, [onChange, isInitialized])
+
+  // Initialize editor content
+  useEffect(() => {
+    if (editorRef.current) {
+      editorRef.current.innerHTML = initialContent
+      setContent(initialContent)
+      setIsInitialized(true)
+      // 直接用DOM内容同步给父组件，保证统计侧边栏和编辑器内容一致
+      onChange?.(editorRef.current.innerHTML)
+    }
+    // 只在挂载时执行一次
+    // eslint-disable-next-line
+  }, [])
 
   // Clear table cell selection
   const clearTableCellSelection = useCallback(() => {
@@ -500,22 +515,6 @@ export default function RichTextEditor({ initialContent = "", onChange, classNam
   }
 
   // Search and replace
-  const handleSearchAndReplace = useCallback(() => {
-    if (!editorRef.current || !searchQuery) return
-
-    const content = editorRef.current.innerHTML
-
-    if (replaceText !== undefined && replaceText !== "") {
-      // Replace all occurrences
-      const regex = new RegExp(searchQuery.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi")
-      const newContent = content.replace(regex, replaceText)
-      editorRef.current.innerHTML = newContent
-      handleContentChange()
-    }
-
-    setShowSearchBar(false)
-  }, [searchQuery, replaceText, handleContentChange])
-
   // 修复替换单个功能 - 支持撤销
   const handleReplaceOne = useCallback(() => {
     if (!editorRef.current || !searchQuery || currentResultIndex === -1 || searchResults.length === 0) return
@@ -733,10 +732,10 @@ export default function RichTextEditor({ initialContent = "", onChange, classNam
       {/* Toolbar */}
       <div className="flex items-center px-4 py-2 border-b bg-muted/30 dark:bg-muted/60 space-x-1 overflow-x-auto">
         {/* Undo/Redo */}
-        <Button variant="ghost" size="sm" onClick={() => handleCommand("undo")} title="Undo (Ctrl+Z)">
+        <Button variant="ghost" size="sm" onClick={() => handleCommand("undo")} title={`${t('editor.undo')} (Ctrl+Z)`}>
           <Undo className="w-4 h-4" />
         </Button>
-        <Button variant="ghost" size="sm" onClick={() => handleCommand("redo")} title="Redo (Ctrl+Y)">
+        <Button variant="ghost" size="sm" onClick={() => handleCommand("redo")} title={`${t('editor.redo')} (Ctrl+Y)`}>
           <Redo className="w-4 h-4" />
         </Button>
 
@@ -776,32 +775,32 @@ export default function RichTextEditor({ initialContent = "", onChange, classNam
         {/* Heading Styles */}
         <Select onValueChange={(value) => handleCommand("formatBlock", `<${value}>`)}>
           <SelectTrigger className="w-24 h-8">
-            <SelectValue placeholder="Style" />
+            <SelectValue placeholder={t('editor.heading')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="div">Normal</SelectItem>
-            <SelectItem value="h1">Heading 1</SelectItem>
-            <SelectItem value="h2">Heading 2</SelectItem>
-            <SelectItem value="h3">Heading 3</SelectItem>
-            <SelectItem value="h4">Heading 4</SelectItem>
-            <SelectItem value="h5">Heading 5</SelectItem>
-            <SelectItem value="h6">Heading 6</SelectItem>
+            <SelectItem value="div">{t('editor.paragraph')}</SelectItem>
+            <SelectItem value="h1">{t('editor.heading1')}</SelectItem>
+            <SelectItem value="h2">{t('editor.heading2')}</SelectItem>
+            <SelectItem value="h3">{t('editor.heading3')}</SelectItem>
+            <SelectItem value="h4">{t('editor.heading4')}</SelectItem>
+            <SelectItem value="h5">{t('editor.heading5')}</SelectItem>
+            <SelectItem value="h6">{t('editor.heading6')}</SelectItem>
           </SelectContent>
         </Select>
 
         <Separator orientation="vertical" className="h-6 mx-2" />
 
         {/* Text Formatting */}
-        <Button variant="ghost" size="sm" onClick={() => handleCommand("bold")} title="Bold (Ctrl+B)">
+        <Button variant="ghost" size="sm" onClick={() => handleCommand("bold")} title={`${t('editor.bold')} (Ctrl+B)`}>
           <Bold className="w-4 h-4" />
         </Button>
-        <Button variant="ghost" size="sm" onClick={() => handleCommand("italic")} title="Italic (Ctrl+I)">
+        <Button variant="ghost" size="sm" onClick={() => handleCommand("italic")} title={`${t('editor.italic')} (Ctrl+I)`}>
           <Italic className="w-4 h-4" />
         </Button>
-        <Button variant="ghost" size="sm" onClick={() => handleCommand("underline")} title="Underline (Ctrl+U)">
+        <Button variant="ghost" size="sm" onClick={() => handleCommand("underline")} title={`${t('editor.underline')} (Ctrl+U)`}>
           <Underline className="w-4 h-4" />
         </Button>
-        <Button variant="ghost" size="sm" onClick={() => handleCommand("strikeThrough")} title="Strikethrough">
+        <Button variant="ghost" size="sm" onClick={() => handleCommand("strikeThrough")} title={t('editor.strikethrough')}>
           <Strikethrough className="w-4 h-4" />
         </Button>
 
@@ -810,7 +809,7 @@ export default function RichTextEditor({ initialContent = "", onChange, classNam
         {/* Text Color */}
         <Popover open={showColorPicker} onOpenChange={setShowColorPicker}>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="sm" title="Text Color">
+            <Button variant="ghost" size="sm" title={t('editor.textColor')}>
               <Type className="w-4 h-4" />
             </Button>
           </PopoverTrigger>
@@ -834,7 +833,7 @@ export default function RichTextEditor({ initialContent = "", onChange, classNam
         {/* Highlight Color */}
         <Popover open={showHighlightPicker} onOpenChange={setShowHighlightPicker}>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="sm" title="Highlight Color">
+            <Button variant="ghost" size="sm" title={t('editor.highlightColor')}>
               <Highlighter className="w-4 h-4" />
             </Button>
           </PopoverTrigger>
@@ -858,34 +857,34 @@ export default function RichTextEditor({ initialContent = "", onChange, classNam
         <Separator orientation="vertical" className="h-6 mx-2" />
 
         {/* Alignment */}
-        <Button variant="ghost" size="sm" onClick={() => handleCommand("justifyLeft")} title="Align Left">
+        <Button variant="ghost" size="sm" onClick={() => handleCommand("justifyLeft")} title={t('editor.alignLeft')}>
           <AlignLeft className="w-4 h-4" />
         </Button>
-        <Button variant="ghost" size="sm" onClick={() => handleCommand("justifyCenter")} title="Align Center">
+        <Button variant="ghost" size="sm" onClick={() => handleCommand("justifyCenter")} title={t('editor.alignCenter')}>
           <AlignCenter className="w-4 h-4" />
         </Button>
-        <Button variant="ghost" size="sm" onClick={() => handleCommand("justifyRight")} title="Align Right">
+        <Button variant="ghost" size="sm" onClick={() => handleCommand("justifyRight")} title={t('editor.alignRight')}>
           <AlignRight className="w-4 h-4" />
         </Button>
-        <Button variant="ghost" size="sm" onClick={() => handleCommand("justifyFull")} title="Justify">
+        <Button variant="ghost" size="sm" onClick={() => handleCommand("justifyFull")} title={t('editor.alignJustify')}>
           <AlignJustify className="w-4 h-4" />
         </Button>
 
         <Separator orientation="vertical" className="h-6 mx-2" />
 
         {/* Lists */}
-        <Button variant="ghost" size="sm" onClick={() => handleCommand("insertUnorderedList")} title="Bullet List">
+        <Button variant="ghost" size="sm" onClick={() => handleCommand("insertUnorderedList")} title={t('editor.unorderedList')}>
           <List className="w-4 h-4" />
         </Button>
-        <Button variant="ghost" size="sm" onClick={() => handleCommand("insertOrderedList")} title="Numbered List">
+        <Button variant="ghost" size="sm" onClick={() => handleCommand("insertOrderedList")} title={t('editor.orderedList')}>
           <ListOrdered className="w-4 h-4" />
         </Button>
 
         {/* Indent */}
-        <Button variant="ghost" size="sm" onClick={() => handleCommand("indent")} title="Increase Indent">
+        <Button variant="ghost" size="sm" onClick={() => handleCommand("indent")} title={t('editor.increaseIndent')}>
           <Indent className="w-4 h-4" />
         </Button>
-        <Button variant="ghost" size="sm" onClick={() => handleCommand("outdent")} title="Decrease Indent">
+        <Button variant="ghost" size="sm" onClick={() => handleCommand("outdent")} title={t('editor.decreaseIndent')}>
           <Outdent className="w-4 h-4" />
         </Button>
 
@@ -894,19 +893,19 @@ export default function RichTextEditor({ initialContent = "", onChange, classNam
         {/* Insert Link */}
         <Popover open={showLinkDialog} onOpenChange={setShowLinkDialog}>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="sm" title="Insert Link">
+            <Button variant="ghost" size="sm" title={t('editor.insertLink')}>
               <Link className="w-4 h-4" />
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-80">
             <div className="space-y-4">
               <div>
-                <Label htmlFor="link-text">Link Text</Label>
+                <Label htmlFor="link-text">{t('editor.linkText')}</Label>
                 <Input
                   id="link-text"
                   value={linkText}
                   onChange={(e) => setLinkText(e.target.value)}
-                  placeholder="Enter link text"
+                  placeholder={t('editor.enterLinkText')}
                 />
               </div>
               <div>
@@ -920,10 +919,10 @@ export default function RichTextEditor({ initialContent = "", onChange, classNam
               </div>
               <div className="flex justify-end space-x-2">
                 <Button variant="outline" size="sm" onClick={() => setShowLinkDialog(false)}>
-                  Cancel
+                  {t('common.cancel')}
                 </Button>
                 <Button size="sm" onClick={handleInsertLink}>
-                  Insert Link
+                  {t('editor.insertLink')}
                 </Button>
               </div>
             </div>
@@ -1181,4 +1180,6 @@ export default function RichTextEditor({ initialContent = "", onChange, classNam
       </div>
     </div>
   )
-}
+})
+
+export default RichTextEditor;

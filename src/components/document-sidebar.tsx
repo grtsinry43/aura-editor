@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from "react"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -54,6 +55,7 @@ interface DocumentStats {
 }
 
 export default function DocumentSidebar({ onClose, documentContent }: DocumentSidebarProps) {
+  const { t } = useTranslation()
   const [searchQuery, setSearchQuery] = useState("")
   const [documentOutline, setDocumentOutline] = useState<OutlineItem[]>([])
   const [documentStats, setDocumentStats] = useState<DocumentStats>({
@@ -141,11 +143,12 @@ export default function DocumentSidebar({ onClose, documentContent }: DocumentSi
       const characters = textContent.length
       const charactersNoSpaces = textContent.replace(/\s/g, "").length
 
-      // Count sentences (improved regex)
-      const sentences = cleanText ? (cleanText.match(/[.!?]+/g) || []).length : 0
+      // Count sentences (improved regex - more accurate)
+      const sentenceRegex = /[.!?。！？]+(?=\s|$)/g
+      const sentences = cleanText ? (cleanText.match(sentenceRegex) || []).length : 0
 
       // Count various elements
-      const paragraphs = doc.querySelectorAll("p").length
+      const paragraphs = doc.querySelectorAll("p, div").length
       const headings = doc.querySelectorAll("h1, h2, h3, h4, h5, h6").length
       const images = doc.querySelectorAll("img").length
       const links = doc.querySelectorAll("a[href]").length
@@ -153,7 +156,7 @@ export default function DocumentSidebar({ onClose, documentContent }: DocumentSi
       const quotes = doc.querySelectorAll("blockquote").length
 
       // Calculate reading time (average 200 words per minute)
-      const readingTime = Math.ceil(words / 200)
+      const readingTime = Math.max(1, Math.ceil(words / 200))
 
       setDocumentStats({
         words,
@@ -223,7 +226,7 @@ export default function DocumentSidebar({ onClose, documentContent }: DocumentSi
     <div className="w-64 border-r bg-muted/30 flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b">
-        <h3 className="font-semibold text-sm">Document Outline</h3>
+        <h3 className="font-semibold text-sm">{t('sidebar.outline')}</h3>
         <Button variant="ghost" size="sm" onClick={onClose} className="lg:hidden">
           <X className="w-4 h-4" />
         </Button>
@@ -234,7 +237,7 @@ export default function DocumentSidebar({ onClose, documentContent }: DocumentSi
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Search headings..."
+            placeholder={t('sidebar.searchPlaceholder')}
             className="pl-10 h-8"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -271,7 +274,7 @@ export default function DocumentSidebar({ onClose, documentContent }: DocumentSi
             ))
           ) : (
             <div className="text-sm text-muted-foreground text-center py-4">
-              {searchQuery ? "No matching headings found" : "No headings in document"}
+              {searchQuery ? t('document.noResults') : t('document.noHeadings')}
             </div>
           )}
         </div>
@@ -280,13 +283,13 @@ export default function DocumentSidebar({ onClose, documentContent }: DocumentSi
 
         {/* Document Stats */}
         <div className="space-y-3 pb-4">
-          <h4 className="font-semibold text-xs text-muted-foreground uppercase tracking-wide">Document Statistics</h4>
+          <h4 className="font-semibold text-xs text-muted-foreground uppercase tracking-wide">{t('sidebar.statistics')}</h4>
           <div className="space-y-2 text-sm">
             {/* Basic Stats */}
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <Type className="w-4 h-4 text-blue-500" />
-                <span>Words</span>
+                <span>{t('document.wordCount')}</span>
               </div>
               <span className="font-medium">{formatNumber(documentStats.words)}</span>
             </div>
@@ -294,7 +297,7 @@ export default function DocumentSidebar({ onClose, documentContent }: DocumentSi
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <FileText className="w-4 h-4 text-green-500" />
-                <span>Characters</span>
+                <span>{t('document.characterCount')}</span>
               </div>
               <span className="font-medium">{formatNumber(documentStats.characters)}</span>
             </div>
@@ -302,7 +305,7 @@ export default function DocumentSidebar({ onClose, documentContent }: DocumentSi
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <FileText className="w-4 h-4 text-purple-500" />
-                <span>Characters (no spaces)</span>
+                <span>{t('document.characterCountNoSpaces')}</span>
               </div>
               <span className="font-medium">{formatNumber(documentStats.charactersNoSpaces)}</span>
             </div>
@@ -310,7 +313,7 @@ export default function DocumentSidebar({ onClose, documentContent }: DocumentSi
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <FileText className="w-4 h-4 text-orange-500" />
-                <span>Sentences</span>
+                <span>{t('document.sentenceCount')}</span>
               </div>
               <span className="font-medium">{formatNumber(documentStats.sentences)}</span>
             </div>
@@ -318,7 +321,7 @@ export default function DocumentSidebar({ onClose, documentContent }: DocumentSi
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <FileText className="w-4 h-4 text-muted-foreground" />
-                <span>Paragraphs</span>
+                <span>{t('document.paragraphCount')}</span>
               </div>
               <span className="font-medium">{formatNumber(documentStats.paragraphs)}</span>
             </div>
@@ -326,7 +329,7 @@ export default function DocumentSidebar({ onClose, documentContent }: DocumentSi
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <Hash className="w-4 h-4 text-indigo-500" />
-                <span>Headings</span>
+                <span>{t('document.headingCount')}</span>
               </div>
               <span className="font-medium">{documentStats.headings}</span>
             </div>
@@ -335,9 +338,9 @@ export default function DocumentSidebar({ onClose, documentContent }: DocumentSi
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <Clock className="w-4 h-4 text-red-500" />
-                <span>Reading time</span>
+                <span>{t('document.readingTime')}</span>
               </div>
-              <span className="font-medium">{documentStats.readingTime} min</span>
+              <span className="font-medium">{documentStats.readingTime} {t('document.minutes')}</span>
             </div>
 
             {/* Conditional Stats - Only show if > 0 */}
@@ -345,7 +348,7 @@ export default function DocumentSidebar({ onClose, documentContent }: DocumentSi
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <ImageIcon className="w-4 h-4 text-pink-500" />
-                  <span>Images</span>
+                  <span>{t('document.imageCount')}</span>
                 </div>
                 <span className="font-medium">{documentStats.images}</span>
               </div>
@@ -355,7 +358,7 @@ export default function DocumentSidebar({ onClose, documentContent }: DocumentSi
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <Link2 className="w-4 h-4 text-cyan-500" />
-                  <span>Links</span>
+                  <span>{t('document.linkCount')}</span>
                 </div>
                 <span className="font-medium">{documentStats.links}</span>
               </div>
@@ -365,7 +368,7 @@ export default function DocumentSidebar({ onClose, documentContent }: DocumentSi
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <List className="w-4 h-4 text-yellow-500" />
-                  <span>Lists</span>
+                  <span>{t('document.listCount')}</span>
                 </div>
                 <span className="font-medium">{documentStats.lists}</span>
               </div>
@@ -375,7 +378,7 @@ export default function DocumentSidebar({ onClose, documentContent }: DocumentSi
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <Quote className="w-4 h-4 text-teal-500" />
-                  <span>Quotes</span>
+                  <span>{t('document.quoteCount')}</span>
                 </div>
                 <span className="font-medium">{documentStats.quotes}</span>
               </div>
