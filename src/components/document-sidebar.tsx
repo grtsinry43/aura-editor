@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
-import { X, Search, Hash, Type, ImageIcon, FileText, List, Quote, Link2, Clock } from "lucide-react"
+import { X, Search, Hash } from "lucide-react"
 import { useDebounce as useDebounceHook } from "@/hooks/use-debounce"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 

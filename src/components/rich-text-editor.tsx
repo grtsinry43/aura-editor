@@ -32,15 +32,11 @@ import {
   Outdent,
   RemoveFormatting,
   Search,
-  Type,
   ChevronUp,
   ChevronDown,
   X,
   Replace,
   CornerDownLeft,
-  FileText,
-  Edit,
-  MoreHorizontal,
   Palette
 } from "lucide-react"
 
@@ -53,17 +49,15 @@ interface RichTextEditorProps {
 const RichTextEditor = forwardRef(function RichTextEditor({ initialContent = "", onChange, className = "" }: RichTextEditorProps, ref) {
   const { t } = useTranslation()
   const editorRef = useRef<HTMLDivElement>(null)
-  const [content, setContent] = useState(initialContent)
-  const [isInitialized, setIsInitialized] = useState(false)
 
   useImperativeHandle(ref, () => ({
     getContent: () => editorRef.current?.innerHTML || ""
   }))
 
-  // Dialog states
-  const [showLinkDialog, setShowLinkDialog] = useState(false)
-  const [showImageDialog, setShowImageDialog] = useState(false)
-  const [showTableDialog, setShowTableDialog] = useState(false)
+  // Popover states
+  const [showLinkPopover, setShowLinkPopover] = useState(false)
+  const [showImagePopover, setShowImagePopover] = useState(false)
+  const [showTablePopover, setShowTablePopover] = useState(false)
   const [showSearchBar, setShowSearchBar] = useState(false)
   const [showReplaceInput, setShowReplaceInput] = useState(false)
   const [showColorPicker, setShowColorPicker] = useState(false)
@@ -80,7 +74,7 @@ const RichTextEditor = forwardRef(function RichTextEditor({ initialContent = "",
   const [replaceText, setReplaceText] = useState("")
   const [searchResults, setSearchResults] = useState<HTMLElement[]>([])
   const [currentResultIndex, setCurrentResultIndex] = useState(-1)
-  const [selectedTableCell, setSelectedTableCell] = useState<HTMLElement | null>(null)
+  const [savedRange, setSavedRange] = useState<Range | null>(null)
 
   const colors = [
     "#000000",
@@ -110,8 +104,6 @@ const RichTextEditor = forwardRef(function RichTextEditor({ initialContent = "",
   const handleContentChange = useCallback(() => {
     if (editorRef.current) {
       const newContent = editorRef.current.innerHTML
-      setContent(newContent)
-      // 确保内容同步到父组件
       onChangeRef.current?.(newContent)
     }
   }, [])
@@ -120,10 +112,9 @@ const RichTextEditor = forwardRef(function RichTextEditor({ initialContent = "",
   useEffect(() => {
     if (editorRef.current && editorRef.current.innerHTML !== initialContent) {
       editorRef.current.innerHTML = initialContent
-      setContent(initialContent)
-      setIsInitialized(true)
+      handleContentChange()
     }
-  }, [initialContent])
+  }, [initialContent, handleContentChange])
 
   // Clear table cell selection
   const clearTableCellSelection = useCallback(() => {
@@ -133,7 +124,6 @@ const RichTextEditor = forwardRef(function RichTextEditor({ initialContent = "",
     highlightedCells.forEach(cell => {
       cell.classList.remove('selected-cell')
     })
-    setSelectedTableCell(null)
   }, [])
 
   // Handle table cell selection
@@ -156,7 +146,6 @@ const RichTextEditor = forwardRef(function RichTextEditor({ initialContent = "",
 
           // Highlight current cell
           element.classList.add('selected-cell')
-          setSelectedTableCell(element)
           return
         }
       }
@@ -275,7 +264,7 @@ const RichTextEditor = forwardRef(function RichTextEditor({ initialContent = "",
 
     setLinkUrl("")
     setLinkText("")
-    setShowLinkDialog(false)
+    setShowLinkPopover(false)
   }, [linkUrl, linkText, handleContentChange])
 
   // Insert image
@@ -306,21 +295,30 @@ const RichTextEditor = forwardRef(function RichTextEditor({ initialContent = "",
 
     setImageUrl("")
     setImageAlt("")
-    setShowImageDialog(false)
+    setShowImagePopover(false)
   }, [imageUrl, imageAlt, handleContentChange])
 
   // Insert table
   const handleInsertTable = useCallback(() => {
     if (!editorRef.current) return
 
-    editorRef.current.focus()
+    // 使用保存的光标位置，如果没有则尝试获取当前位置
+    let range = savedRange
+    if (!range) {
+      const selection = window.getSelection()
+      if (selection && selection.rangeCount > 0) {
+        range = selection.getRangeAt(0)
+      } else {
+        // 如果没有选择，插入到编辑器末尾
+        range = document.createRange()
+        range.selectNodeContents(editorRef.current)
+        range.collapse(false)
+      }
+    }
 
-    const selection = window.getSelection()
-    if (selection && selection.rangeCount > 0) {
-      const range = selection.getRangeAt(0)
-
+    if (range) {
       const table = document.createElement("table")
-      table.className = "border-collapse border border-gray-300 w-full my-4"
+      table.className = "border-collapse border border-gray-300 w-auto my-4 text-sm"
 
       for (let i = 0; i < tableRows; i++) {
         const row = document.createElement("tr")
@@ -328,7 +326,9 @@ const RichTextEditor = forwardRef(function RichTextEditor({ initialContent = "",
         for (let j = 0; j < tableCols; j++) {
           const cell = document.createElement(i === 0 ? "th" : "td")
           cell.className =
-            i === 0 ? "border border-gray-300 bg-gray-100 p-2 font-semibold text-left" : "border border-gray-300 p-2"
+            i === 0 
+              ? "border border-gray-300 bg-gray-100 p-2 font-semibold text-left text-sm" 
+              : "border border-gray-300 p-2 text-sm"
 
           // 修复默认内容问题 - 避免使用可能被误认为标题的文本
           cell.textContent = i === 0 ? `列 ${j + 1}` : `单元格 ${i + 1}-${j + 1}`
@@ -342,16 +342,23 @@ const RichTextEditor = forwardRef(function RichTextEditor({ initialContent = "",
       range.insertNode(table)
 
       // Move cursor after the table
-      range.setStartAfter(table)
-      range.setEndAfter(table)
-      selection.removeAllRanges()
-      selection.addRange(range)
+      const newRange = document.createRange()
+      newRange.setStartAfter(table)
+      newRange.setEndAfter(table)
+      
+      const selection = window.getSelection()
+      if (selection) {
+        selection.removeAllRanges()
+        selection.addRange(newRange)
+      }
 
       handleContentChange()
     }
 
-    setShowTableDialog(false)
-  }, [tableRows, tableCols, handleContentChange])
+    // 清理状态
+    setSavedRange(null)
+    setShowTablePopover(false)
+  }, [tableRows, tableCols, handleContentChange, savedRange])
 
   const clearSearch = useCallback(() => {
     if (!editorRef.current) return
@@ -1042,38 +1049,179 @@ const RichTextEditor = forwardRef(function RichTextEditor({ initialContent = "",
         <Separator orientation="vertical" className="h-6 mx-2" />
 
         {/* Insert */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="ghost" size="sm" onClick={handleInsertLink}>
-              <Link className="w-4 h-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="top">
-            <p>{t('editor.insertLink')}</p>
-          </TooltipContent>
-        </Tooltip>
+        <Popover 
+          open={showLinkPopover} 
+          onOpenChange={(open) => {
+            if (open && editorRef.current) {
+              // 保存当前光标位置
+              const selection = window.getSelection()
+              if (selection && selection.rangeCount > 0) {
+                setSavedRange(selection.getRangeAt(0).cloneRange())
+              }
+            }
+            setShowLinkPopover(open)
+          }}
+        >
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  <Link className="w-4 h-4" />
+                </Button>
+              </PopoverTrigger>
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              <p>{t('editor.insertLink')}</p>
+            </TooltipContent>
+          </Tooltip>
+          <PopoverContent className="w-80" side="bottom" align="start">
+            <div className="space-y-3">
+              <h4 className="font-medium text-sm">{t('editor.insertLink')}</h4>
+              <div className="space-y-2">
+                <Label htmlFor="link-text" className="text-xs">{t('editor.linkText')}</Label>
+                <Input
+                  id="link-text"
+                  placeholder={t('editor.enterLinkText')}
+                  value={linkText}
+                  onChange={(e) => setLinkText(e.target.value)}
+                  className="h-8"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="link-url" className="text-xs">链接地址</Label>
+                <Input
+                  id="link-url"
+                  placeholder="https://example.com"
+                  value={linkUrl}
+                  onChange={(e) => setLinkUrl(e.target.value)}
+                  className="h-8"
+                />
+              </div>
+              <div className="flex justify-end space-x-2">
+                <Button variant="outline" size="sm" onClick={() => setShowLinkPopover(false)}>
+                  取消
+                </Button>
+                <Button size="sm" onClick={handleInsertLink} disabled={!linkUrl || !linkText}>
+                  插入
+                </Button>
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
 
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="ghost" size="sm" onClick={handleInsertImage}>
-              <ImageIcon className="w-4 h-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="top">
-            <p>{t('editor.insertImage')}</p>
-          </TooltipContent>
-        </Tooltip>
+        <Popover open={showImagePopover} onOpenChange={setShowImagePopover}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  <ImageIcon className="w-4 h-4" />
+                </Button>
+              </PopoverTrigger>
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              <p>{t('editor.insertImage')}</p>
+            </TooltipContent>
+          </Tooltip>
+          <PopoverContent className="w-80" side="bottom" align="start">
+            <div className="space-y-3">
+              <h4 className="font-medium text-sm">{t('editor.insertImage')}</h4>
+              <div className="space-y-2">
+                <Label htmlFor="image-url" className="text-xs">图片地址</Label>
+                <Input
+                  id="image-url"
+                  placeholder="https://example.com/image.jpg"
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  className="h-8"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="image-alt" className="text-xs">替代文本（可选）</Label>
+                <Input
+                  id="image-alt"
+                  placeholder="图片描述"
+                  value={imageAlt}
+                  onChange={(e) => setImageAlt(e.target.value)}
+                  className="h-8"
+                />
+              </div>
+              <div className="flex justify-end space-x-2">
+                <Button variant="outline" size="sm" onClick={() => setShowImagePopover(false)}>
+                  取消
+                </Button>
+                <Button size="sm" onClick={handleInsertImage} disabled={!imageUrl}>
+                  插入
+                </Button>
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
 
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="ghost" size="sm" onClick={handleInsertTable}>
-              <Table className="w-4 h-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="top">
-            <p>{t('editor.insertTable')}</p>
-          </TooltipContent>
-        </Tooltip>
+        <Popover 
+          open={showTablePopover} 
+          onOpenChange={(open) => {
+            if (open && editorRef.current) {
+              // 保存当前光标位置
+              const selection = window.getSelection()
+              if (selection && selection.rangeCount > 0) {
+                setSavedRange(selection.getRangeAt(0).cloneRange())
+              }
+            }
+            setShowTablePopover(open)
+          }}
+        >
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  <Table className="w-4 h-4" />
+                </Button>
+              </PopoverTrigger>
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              <p>{t('editor.insertTable')}</p>
+            </TooltipContent>
+          </Tooltip>
+          <PopoverContent className="w-64" side="bottom" align="start">
+            <div className="space-y-3">
+              <h4 className="font-medium text-sm">{t('editor.insertTable')}</h4>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="table-rows" className="text-xs">行数</Label>
+                  <Input
+                    id="table-rows"
+                    type="number"
+                    min="1"
+                    max="20"
+                    value={tableRows}
+                    onChange={(e) => setTableRows(parseInt(e.target.value) || 3)}
+                    className="h-8"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="table-cols" className="text-xs">列数</Label>
+                  <Input
+                    id="table-cols"
+                    type="number"
+                    min="1"
+                    max="10"
+                    value={tableCols}
+                    onChange={(e) => setTableCols(parseInt(e.target.value) || 3)}
+                    className="h-8"
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end space-x-2">
+                <Button variant="outline" size="sm" onClick={() => setShowTablePopover(false)}>
+                  取消
+                </Button>
+                <Button size="sm" onClick={handleInsertTable}>
+                  创建
+                </Button>
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
 
         {/* Indent */}
         <Tooltip>
@@ -1260,6 +1408,9 @@ const RichTextEditor = forwardRef(function RichTextEditor({ initialContent = "",
             prose-code:bg-muted prose-code:px-1 prose-code:rounded prose-code:text-sm
             prose-img:max-w-full prose-img:h-auto prose-img:rounded-lg prose-img:my-4
             prose-a:text-primary prose-a:no-underline hover:prose-a:underline
+            prose-table:text-sm prose-table:my-4
+            prose-th:text-sm prose-th:font-semibold prose-th:p-2 prose-th:border
+            prose-td:text-sm prose-td:p-2 prose-td:border
             focus:outline-none selection:bg-primary/20"
           style={{
             lineHeight: "1.6",

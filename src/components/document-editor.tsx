@@ -12,6 +12,7 @@ import { ThemeToggle } from "@/components/ui/theme-toggle"
 import { LanguageToggle } from "./language-toggle"
 import { toast } from "sonner"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import WelcomeDialog from "./welcome-dialog"
 
 // 中英文版本的编辑器介绍内容
 const getWelcomeContent = (language: string) => {
@@ -120,6 +121,7 @@ export default function DocumentEditor() {
   const [showSidebar, setShowSidebar] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
   const [lastSaved, setLastSaved] = useState<Date>()
+  const [showWelcomeDialog, setShowWelcomeDialog] = useState(false)
   
   // 初始化为空字符串，然后在useEffect中设置欢迎内容
   const [documentContent, setDocumentContent] = useState('')
@@ -135,6 +137,18 @@ export default function DocumentEditor() {
     const welcomeContent = getWelcomeContent(i18n.language || 'zh')
     setDocumentContent(welcomeContent)
   }, [i18n.language])
+
+  // 检查是否显示欢迎窗口
+  useEffect(() => {
+    const isWelcomeDismissed = localStorage.getItem('aura-editor-welcome-dismissed')
+    if (!isWelcomeDismissed) {
+      // 延迟一点时间显示，让界面先渲染完成
+      const timer = setTimeout(() => {
+        setShowWelcomeDialog(true)
+      }, 500)
+      return () => clearTimeout(timer)
+    }
+  }, [])
 
   const handleTitleEdit = () => {
     setIsEditing(true)
@@ -560,6 +574,12 @@ export default function DocumentEditor() {
           </EditorContextMenu>
         </div>
       </div>
+
+      {/* 欢迎窗口 */}
+      <WelcomeDialog 
+        isOpen={showWelcomeDialog}
+        onClose={() => setShowWelcomeDialog(false)}
+      />
     </div>
   )
 }
