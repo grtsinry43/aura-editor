@@ -71,6 +71,43 @@
     "linkText": "Link Text",
     "enterLinkText": "Enter link text"
   },
+  "contextMenu": {
+    "edit": "Edit",
+    "undo": "Undo",
+    "redo": "Redo",
+    "cut": "Cut",
+    "copy": "Copy",
+    "paste": "Paste",
+    "selectAll": "Select All",
+    "format": "Format",
+    "bold": "Bold",
+    "italic": "Italic",
+    "underline": "Underline",
+    "strikethrough": "Strikethrough",
+    "alignment": "Alignment",
+    "alignLeft": "Align Left",
+    "alignCenter": "Align Center",
+    "alignRight": "Align Right",
+    "alignJustify": "Justify",
+    "bulletList": "Bullet List",
+    "numberedList": "Numbered List",
+    "quote": "Quote",
+    "code": "Code",
+    "insert": "Insert",
+    "link": "Link",
+    "image": "Image",
+    "table": "Table",
+    "search": "Search",
+    "find": "Find",
+    "replace": "Replace",
+    "indent": "Increase Indent",
+    "outdent": "Decrease Indent",
+    "removeFormatting": "Remove Formatting",
+    "zoom": "Zoom",
+    "zoomIn": "Zoom In",
+    "zoomOut": "Zoom Out",
+    "resetZoom": "Reset Zoom"
+  },
   "sidebar": {
     "outline": "Outline",
     "statistics": "Statistics",
@@ -105,5 +142,13 @@
     "documentExportedError": "Failed to export document",
     "linkCopied": "Link copied to clipboard",
     "linkCopiedError": "Failed to copy link"
+  },
+  "toast": {
+    "copied": "Copied to clipboard",
+    "cut": "Cut to clipboard",
+    "pasted": "Content pasted",
+    "undo": "Action undone",
+    "redo": "Action redone",
+    "pasteError": "Paste failed, please use Ctrl+V"
   }
 } 

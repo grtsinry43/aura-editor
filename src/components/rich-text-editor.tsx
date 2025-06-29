@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { toast } from "sonner"
 import {
   Bold,
   Italic,
@@ -98,29 +99,26 @@ const RichTextEditor = forwardRef(function RichTextEditor({ initialContent = "",
   ]
 
   // Handle content changes
+  const onChangeRef = useRef(onChange)
+  onChangeRef.current = onChange
+
   const handleContentChange = useCallback(() => {
     if (editorRef.current) {
       const newContent = editorRef.current.innerHTML
       setContent(newContent)
-      // 只有在初始化完成后才触发onChange，避免初始化时的循环
-      if (isInitialized) {
-        onChange?.(newContent)
-      }
+      // 确保内容同步到父组件
+      onChangeRef.current?.(newContent)
     }
-  }, [onChange, isInitialized])
+  }, [])
 
   // Initialize editor content
   useEffect(() => {
-    if (editorRef.current) {
+    if (editorRef.current && editorRef.current.innerHTML !== initialContent) {
       editorRef.current.innerHTML = initialContent
       setContent(initialContent)
       setIsInitialized(true)
-      // 直接用DOM内容同步给父组件，保证统计侧边栏和编辑器内容一致
-      onChange?.(editorRef.current.innerHTML)
     }
-    // 只在挂载时执行一次
-    // eslint-disable-next-line
-  }, [])
+  }, [initialContent])
 
   // Clear table cell selection
   const clearTableCellSelection = useCallback(() => {
@@ -695,18 +693,31 @@ const RichTextEditor = forwardRef(function RichTextEditor({ initialContent = "",
             e.preventDefault()
             if (e.shiftKey) {
               handleCommand("redo")
+              toast.success(t('toast.redo'))
             } else {
               handleCommand("undo")
+              toast.success(t('toast.undo'))
             }
             break
           case "y":
             e.preventDefault()
             handleCommand("redo")
+            toast.success(t('toast.redo'))
+            break
+          case "c":
+            e.preventDefault()
+            document.execCommand('copy')
+            toast.success(t('toast.copied'))
+            break
+          case "x":
+            e.preventDefault()
+            document.execCommand('cut')
+            toast.success(t('toast.cut'))
             break
         }
       }
     },
-    [handleCommand],
+    [handleCommand, t],
   )
 
   // Handle paste events
@@ -722,9 +733,10 @@ const RichTextEditor = forwardRef(function RichTextEditor({ initialContent = "",
       if (content) {
         document.execCommand("insertHTML", false, content)
         handleContentChange()
+        toast.success(t('toast.pasted'))
       }
     },
-    [handleContentChange],
+    [handleContentChange, t],
   )
 
   return (
@@ -732,10 +744,26 @@ const RichTextEditor = forwardRef(function RichTextEditor({ initialContent = "",
       {/* Toolbar */}
       <div className="flex items-center px-4 py-2 border-b bg-muted/30 dark:bg-muted/60 space-x-1 overflow-x-auto">
         {/* Undo/Redo */}
-        <Button variant="ghost" size="sm" onClick={() => handleCommand("undo")} title={`${t('editor.undo')} (Ctrl+Z)`}>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => {
+            handleCommand("undo")
+            toast.success(t('toast.undo'))
+          }} 
+          title={`${t('editor.undo')} (Ctrl+Z)`}
+        >
           <Undo className="w-4 h-4" />
         </Button>
-        <Button variant="ghost" size="sm" onClick={() => handleCommand("redo")} title={`${t('editor.redo')} (Ctrl+Y)`}>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => {
+            handleCommand("redo")
+            toast.success(t('toast.redo'))
+          }} 
+          title={`${t('editor.redo')} (Ctrl+Y)`}
+        >
           <Redo className="w-4 h-4" />
         </Button>
 
@@ -1157,7 +1185,7 @@ const RichTextEditor = forwardRef(function RichTextEditor({ initialContent = "",
           onInput={handleContentChange}
           onKeyDown={handleKeyDown}
           onPaste={handlePaste}
-          className="min-h-full p-8 max-w-4xl mx-auto outline-none
+          className="p-8 max-w-4xl mx-auto outline-none
             prose prose-lg max-w-none
             prose-headings:font-semibold prose-headings:text-foreground
             prose-h1:text-3xl prose-h1:mb-6 prose-h1:mt-8
@@ -1175,6 +1203,7 @@ const RichTextEditor = forwardRef(function RichTextEditor({ initialContent = "",
             lineHeight: "1.6",
             fontSize: "16px",
             fontFamily: "Inter, -apple-system, BlinkMacSystemFont, sans-serif",
+            minHeight: "calc(100vh - 200px)",
           }}
         />
       </div>
