@@ -109,7 +109,7 @@ export default function RichTextEditor({ initialContent = "", onChange, classNam
     }
   }, [onChange])
 
-  // Clear table cell selection highlighting
+  // Clear table cell selection
   const clearTableCellSelection = useCallback(() => {
     if (!editorRef.current) return
 
@@ -167,8 +167,8 @@ export default function RichTextEditor({ initialContent = "", onChange, classNam
     const style = document.createElement('style')
     style.textContent = `
       .selected-cell {
-        background-color: rgba(59, 130, 246, 0.1) !important;
-        box-shadow: 0 0 0 2px #3b82f6 !important;
+        background-color: hsl(var(--primary) / 0.1) !important;
+        box-shadow: 0 0 0 2px hsl(var(--primary)) !important;
         position: relative;
       }
       
@@ -179,7 +179,7 @@ export default function RichTextEditor({ initialContent = "", onChange, classNam
         right: -2px;
         bottom: -2px;
         left: -2px;
-        border: 2px solid #3b82f6;
+        border: 2px solid hsl(var(--primary));
         pointer-events: none;
         border-radius: 2px;
         z-index: 1;
@@ -187,28 +187,28 @@ export default function RichTextEditor({ initialContent = "", onChange, classNam
 
       /* 查找替换高亮样式 */
       .search-highlight {
-        background-color: #fef08a !important;
+        background-color: hsl(var(--warning) / 0.3) !important;
         padding: 1px 2px;
         border-radius: 2px;
       }
       
       .search-highlight.current {
-        background-color: #f97316 !important;
-        color: white !important;
-        box-shadow: 0 0 0 2px #f97316;
+        background-color: hsl(var(--destructive)) !important;
+        color: hsl(var(--destructive-foreground)) !important;
+        box-shadow: 0 0 0 2px hsl(var(--destructive));
         animation: pulse-highlight 1s ease-in-out;
       }
-      
+
       @keyframes pulse-highlight {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.05); }
-        100% { transform: scale(1); }
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
       }
     `
     document.head.appendChild(style)
-
     return () => {
-      document.head.removeChild(style)
+      if (document.head.contains(style)) {
+        document.head.removeChild(style)
+      }
     }
   }, [])
 
@@ -733,7 +733,7 @@ export default function RichTextEditor({ initialContent = "", onChange, classNam
   return (
     <div className={`flex flex-col h-full ${className}`}>
       {/* Toolbar */}
-      <div className="flex items-center px-4 py-2 border-b bg-gray-50/50 space-x-1 overflow-x-auto">
+      <div className="flex items-center px-4 py-2 border-b bg-muted/30 dark:bg-muted/60 space-x-1 overflow-x-auto">
         {/* Undo/Redo */}
         <Button variant="ghost" size="sm" onClick={() => handleCommand("undo")} title="Undo (Ctrl+Z)">
           <Undo className="w-4 h-4" />
@@ -821,7 +821,7 @@ export default function RichTextEditor({ initialContent = "", onChange, classNam
               {colors.map((color) => (
                 <button
                   key={color}
-                  className="w-8 h-8 rounded border border-gray-300 hover:scale-110 transition-transform"
+                  className="w-8 h-8 rounded border border-border hover:scale-110 transition-transform"
                   style={{ backgroundColor: color }}
                   onClick={() => {
                     handleCommand("foreColor", color)
@@ -845,7 +845,7 @@ export default function RichTextEditor({ initialContent = "", onChange, classNam
               {colors.map((color) => (
                 <button
                   key={color}
-                  className="w-8 h-8 rounded border border-gray-300 hover:scale-110 transition-transform"
+                  className="w-8 h-8 rounded border border-border hover:scale-110 transition-transform"
                   style={{ backgroundColor: color }}
                   onClick={() => {
                     handleCommand("hiliteColor", color)
@@ -1044,10 +1044,10 @@ export default function RichTextEditor({ initialContent = "", onChange, classNam
 
       {/* Search Bar */}
       {showSearchBar && (
-        <div className="border-b bg-gray-50/50">
+        <div className="border-b bg-muted/50 dark:bg-muted/70">
           {/* Search Input Row */}
           <div className="flex items-center px-4 py-2 space-x-2">
-            <Search className="w-4 h-4 text-gray-500" />
+            <Search className="w-4 h-4 text-muted-foreground" />
             <Input
               type="text"
               placeholder="Find in document..."
@@ -1085,7 +1085,7 @@ export default function RichTextEditor({ initialContent = "", onChange, classNam
             >
               <ChevronDown className="w-4 h-4" />
             </Button>
-            <span className="text-sm text-gray-500 min-w-fit">
+            <span className="text-sm text-muted-foreground min-w-fit">
               {searchResults.length > 0 ? `${currentResultIndex + 1} of ${searchResults.length}` : "No results"}
             </span>
             <Button
@@ -1113,7 +1113,7 @@ export default function RichTextEditor({ initialContent = "", onChange, classNam
           {/* Replace Input Row */}
           {showReplaceInput && (
             <div className="flex items-center px-4 py-2 space-x-2 border-t">
-              <Replace className="w-4 h-4 text-gray-500" />
+              <Replace className="w-4 h-4 text-muted-foreground" />
               <Input
                 type="text"
                 placeholder="Replace with..."
@@ -1162,18 +1162,18 @@ export default function RichTextEditor({ initialContent = "", onChange, classNam
           onPaste={handlePaste}
           className="min-h-full p-8 max-w-4xl mx-auto outline-none
             prose prose-lg max-w-none
-            prose-headings:font-semibold prose-headings:text-gray-900
+            prose-headings:font-semibold prose-headings:text-foreground
             prose-h1:text-3xl prose-h1:mb-6 prose-h1:mt-8
             prose-h2:text-2xl prose-h2:mb-4 prose-h2:mt-6
             prose-h3:text-xl prose-h3:mb-3 prose-h3:mt-5
-            prose-p:text-gray-700 prose-p:leading-relaxed prose-p:mb-4
+            prose-p:text-muted-foreground prose-p:leading-relaxed prose-p:mb-4
             prose-ul:my-4 prose-li:my-1
-            prose-blockquote:border-l-4 prose-blockquote:border-blue-500 prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:bg-gray-50 prose-blockquote:py-2
-            prose-pre:bg-gray-100 prose-pre:p-4 prose-pre:rounded prose-pre:overflow-x-auto prose-pre:text-sm
-            prose-code:bg-gray-100 prose-code:px-1 prose-code:rounded prose-code:text-sm
+            prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:bg-muted prose-blockquote:py-2
+            prose-pre:bg-muted prose-pre:p-4 prose-pre:rounded prose-pre:overflow-x-auto prose-pre:text-sm
+            prose-code:bg-muted prose-code:px-1 prose-code:rounded prose-code:text-sm
             prose-img:max-w-full prose-img:h-auto prose-img:rounded-lg prose-img:my-4
-            prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline
-            focus:outline-none selection:bg-blue-100"
+            prose-a:text-primary prose-a:no-underline hover:prose-a:underline
+            focus:outline-none selection:bg-primary/20"
           style={{
             lineHeight: "1.6",
             fontSize: "16px",

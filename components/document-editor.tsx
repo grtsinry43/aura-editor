@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Share2, Download, Star, Clock, MoreHorizontal, Menu } from "lucide-react"
 import DocumentSidebar from "./document-sidebar"
 import RichTextEditor from "./rich-text-editor"
+import { ThemeToggle } from "@/components/ui/theme-toggle"
 
 const initialContent = `
 <h1>Project Proposal: Next-Generation Collaboration Platform</h1>
@@ -92,17 +93,17 @@ export default function DocumentEditor() {
   }, [])
 
   return (
-    <div className="flex flex-col h-screen bg-white">
+    <div className="flex flex-col h-screen bg-background">
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 border-b bg-white">
+      <header className="flex items-center justify-between px-4 py-3 border-b bg-background">
         <div className="flex items-center space-x-4">
           <Button variant="ghost" size="sm" onClick={() => setShowSidebar(!showSidebar)} className="lg:hidden">
             <Menu className="w-4 h-4" />
           </Button>
 
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">D</span>
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-sm">D</span>
             </div>
             <div className="flex flex-col">
               {isEditing ? (
@@ -112,17 +113,17 @@ export default function DocumentEditor() {
                   onChange={(e) => setDocumentTitle(e.target.value)}
                   onBlur={handleTitleSave}
                   onKeyDown={handleTitleKeyDown}
-                  className="text-lg font-semibold border-none p-0 h-auto focus-visible:ring-0 bg-gray-100 px-2 py-1 rounded"
+                  className="text-lg font-semibold border-none p-0 h-auto focus-visible:ring-0 bg-muted px-2 py-1 rounded"
                 />
               ) : (
                 <h1
-                  className="text-lg font-semibold cursor-pointer hover:bg-gray-100 px-2 py-1 rounded"
+                  className="text-lg font-semibold cursor-pointer hover:bg-muted px-2 py-1 rounded"
                   onClick={handleTitleEdit}
                 >
                   {documentTitle}
                 </h1>
               )}
-              <div className="flex items-center space-x-2 text-xs text-gray-500">
+              <div className="flex items-center space-x-2 text-xs text-muted-foreground">
                 <Clock className="w-3 h-3" />
                 {lastSaved && <span>Last saved {lastSaved.toLocaleTimeString()}</span>}
               </div>
@@ -131,6 +132,8 @@ export default function DocumentEditor() {
         </div>
 
         <div className="flex items-center space-x-3">
+          <ThemeToggle />
+          
           <Button variant="ghost" size="sm">
             <Star className="w-4 h-4" />
           </Button>
@@ -139,7 +142,7 @@ export default function DocumentEditor() {
             <Download className="w-4 h-4" />
           </Button>
 
-          <Button className="bg-blue-600 hover:bg-blue-700">
+          <Button className="bg-primary hover:bg-primary/90">
             <Share2 className="w-4 h-4 mr-2" />
             Share
           </Button>

@@ -18,7 +18,7 @@ const Highlight = ({ text, highlight }: { text: string; highlight: string }) => 
     <span>
       {parts.map((part, i) =>
         regex.test(part) ? (
-          <span key={i} className="bg-yellow-200">
+          <span key={i} className="bg-yellow-200 dark:bg-yellow-800">
             {part}
           </span>
         ) : (
@@ -201,9 +201,9 @@ export default function DocumentSidebar({ onClose, documentContent }: DocumentSi
         })
 
         // Highlight the heading temporarily
-        targetHeading.classList.add("bg-yellow-100", "transition-colors", "duration-500")
+        targetHeading.classList.add("bg-yellow-100", "dark:bg-yellow-800", "transition-colors", "duration-500")
         setTimeout(() => {
-          targetHeading.classList.remove("bg-yellow-100", "transition-colors", "duration-500")
+          targetHeading.classList.remove("bg-yellow-100", "dark:bg-yellow-800", "transition-colors", "duration-500")
         }, 2000)
       }
     } catch (error) {
@@ -222,7 +222,7 @@ export default function DocumentSidebar({ onClose, documentContent }: DocumentSi
   }
 
   return (
-    <div className="w-64 border-r bg-gray-50/30 flex flex-col">
+    <div className="w-64 border-r bg-muted/30 flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b">
         <h3 className="font-semibold text-sm">Document Outline</h3>
@@ -234,7 +234,7 @@ export default function DocumentSidebar({ onClose, documentContent }: DocumentSi
       {/* Search */}
       <div className="p-4">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder="Search headings..."
             className="pl-10 h-8"
@@ -251,7 +251,7 @@ export default function DocumentSidebar({ onClose, documentContent }: DocumentSi
             filteredOutline.map((item, index) => (
               <div
                 key={`${item.id}-${index}`}
-                className={`flex items-start space-x-2 p-2 rounded-md hover:bg-gray-100 cursor-pointer text-sm transition-colors group ${
+                className={`flex items-start space-x-2 p-2 rounded-md hover:bg-muted cursor-pointer text-sm transition-colors group ${
                   item.level === 1
                     ? "font-semibold"
                     : item.level === 2
@@ -265,14 +265,14 @@ export default function DocumentSidebar({ onClose, documentContent }: DocumentSi
                 onClick={() => handleOutlineClick(item)}
                 title={item.title}
               >
-                <Hash className="w-3 h-3 text-gray-400 flex-shrink-0 mt-0.5 group-hover:text-blue-500 transition-colors" />
+                <Hash className="w-3 h-3 text-muted-foreground flex-shrink-0 mt-0.5 group-hover:text-primary transition-colors" />
                 <span className="truncate leading-tight">
                   <Highlight text={item.title} highlight={searchQuery} />
                 </span>
               </div>
             ))
           ) : (
-            <div className="text-sm text-gray-500 text-center py-4">
+            <div className="text-sm text-muted-foreground text-center py-4">
               {searchQuery ? "No matching headings found" : "No headings in document"}
             </div>
           )}
@@ -282,7 +282,7 @@ export default function DocumentSidebar({ onClose, documentContent }: DocumentSi
 
         {/* Document Stats */}
         <div className="space-y-3 pb-4">
-          <h4 className="font-semibold text-xs text-gray-500 uppercase tracking-wide">Document Statistics</h4>
+          <h4 className="font-semibold text-xs text-muted-foreground uppercase tracking-wide">Document Statistics</h4>
           <div className="space-y-2 text-sm">
             {/* Basic Stats */}
             <div className="flex items-center justify-between">
@@ -319,7 +319,7 @@ export default function DocumentSidebar({ onClose, documentContent }: DocumentSi
 
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <FileText className="w-4 h-4 text-gray-500" />
+                <FileText className="w-4 h-4 text-muted-foreground" />
                 <span>Paragraphs</span>
               </div>
               <span className="font-medium">{formatNumber(documentStats.paragraphs)}</span>
@@ -386,9 +386,9 @@ export default function DocumentSidebar({ onClose, documentContent }: DocumentSi
 
           {/* Summary */}
           {documentStats.words > 0 && (
-            <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-              <div className="text-xs text-blue-600 font-medium mb-1">Document Summary</div>
-              <div className="text-xs text-blue-700">
+            <div className="mt-4 p-3 bg-primary/10 rounded-lg">
+              <div className="text-xs text-primary font-medium mb-1">Document Summary</div>
+              <div className="text-xs text-primary/80">
                 {documentStats.words > 1000 ? "Long" : documentStats.words > 500 ? "Medium" : "Short"} document with{" "}
                 {documentStats.headings} section{documentStats.headings !== 1 ? "s" : ""}. {documentStats.readingTime}{" "}
                 minute{documentStats.readingTime !== 1 ? "s" : ""} to read.
