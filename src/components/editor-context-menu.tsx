@@ -41,7 +41,6 @@ import {
   ZoomIn,
   ZoomOut,
   Replace,
-  Plus,
 } from "lucide-react"
 
 interface EditorContextMenuProps {

@@ -206,7 +206,6 @@ export default function DocumentEditor() {
       const savedContent = localStorage.getItem(STORAGE_KEYS.DOCUMENT_CONTENT)
       const savedTitle = localStorage.getItem(STORAGE_KEYS.DOCUMENT_TITLE)
       const savedLastSaved = localStorage.getItem(STORAGE_KEYS.LAST_SAVED)
-      const isFirstTimeUser = !localStorage.getItem(STORAGE_KEYS.FIRST_TIME_USER)
       const userHasEdited = localStorage.getItem(STORAGE_KEYS.USER_HAS_EDITED) === 'true'
       
       // 判断是否应该显示欢迎内容
