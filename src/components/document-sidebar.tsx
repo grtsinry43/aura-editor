@@ -235,7 +235,7 @@ export default function DocumentSidebar({ onClose, documentContent }: DocumentSi
   return (
     <div className="w-80 sm:w-64 lg:w-64 border-r bg-background/95 backdrop-blur-sm lg:bg-muted/30 flex flex-col h-full shadow-lg lg:shadow-none">
       {/* Header */}
-      <div className="flex items-center justify-between p-3 sm:p-4 border-b bg-background/90 backdrop-blur-sm">
+      <div className="flex items-center justify-between p-2 sm:p-3 border-b bg-background/90 backdrop-blur-sm">
         <h3 className="font-semibold text-sm sm:text-base">{t('sidebar.outline')}</h3>
         <div className="flex items-center space-x-2">
           <Tooltip>
@@ -250,7 +250,7 @@ export default function DocumentSidebar({ onClose, documentContent }: DocumentSi
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>{showSearch ? "隐藏搜索" : "搜索标题"}</p>
+              <p>{showSearch ? t('sidebar.hideSearch') : t('sidebar.searchHeadings')}</p>
             </TooltipContent>
           </Tooltip>
           <Tooltip>
@@ -273,7 +273,7 @@ export default function DocumentSidebar({ onClose, documentContent }: DocumentSi
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>{isCompactMode ? "展开模式" : "紧凑模式"}</p>
+              <p>{isCompactMode ? t('sidebar.expandedMode') : t('sidebar.compactMode')}</p>
             </TooltipContent>
           </Tooltip>
           <Button variant="ghost" size="sm" onClick={onClose} className="lg:hidden p-2">
@@ -351,7 +351,7 @@ export default function DocumentSidebar({ onClose, documentContent }: DocumentSi
                 <div className="w-1 h-1 rounded-full bg-blue-500/60"></div>
                 <span className="text-sm font-semibold text-foreground">{formatNumber(documentStats.words)}</span>
               </div>
-              <div className="text-xs text-muted-foreground/70">字数</div>
+              <div className="text-xs text-muted-foreground/70">{t('sidebar.words')}</div>
             </div>
 
             <div className="text-center group cursor-default">
@@ -359,7 +359,7 @@ export default function DocumentSidebar({ onClose, documentContent }: DocumentSi
                 <div className="w-1 h-1 rounded-full bg-green-500/60"></div>
                 <span className="text-sm font-semibold text-foreground">{formatNumber(documentStats.characters)}</span>
               </div>
-              <div className="text-xs text-muted-foreground/70">字符</div>
+              <div className="text-xs text-muted-foreground/70">{t('sidebar.characters')}</div>
             </div>
 
             <div className="text-center group cursor-default">
@@ -367,7 +367,7 @@ export default function DocumentSidebar({ onClose, documentContent }: DocumentSi
                 <div className="w-1 h-1 rounded-full bg-red-500/60"></div>
                 <span className="text-sm font-semibold text-foreground">{documentStats.readingTime}</span>
               </div>
-              <div className="text-xs text-muted-foreground/70">分钟</div>
+              <div className="text-xs text-muted-foreground/70">{t('sidebar.minutes')}</div>
             </div>
 
             {/* Row 2 - Secondary stats */}
@@ -376,7 +376,7 @@ export default function DocumentSidebar({ onClose, documentContent }: DocumentSi
                 <div className="w-1 h-1 rounded-full bg-orange-500/60"></div>
                 <span className="text-sm font-medium text-muted-foreground">{formatNumber(documentStats.sentences)}</span>
               </div>
-              <div className="text-xs text-muted-foreground/70">句子</div>
+              <div className="text-xs text-muted-foreground/70">{t('sidebar.sentences')}</div>
             </div>
 
             <div className="text-center group cursor-default">
@@ -384,7 +384,7 @@ export default function DocumentSidebar({ onClose, documentContent }: DocumentSi
                 <div className="w-1 h-1 rounded-full bg-slate-500/60"></div>
                 <span className="text-sm font-medium text-muted-foreground">{formatNumber(documentStats.paragraphs)}</span>
               </div>
-              <div className="text-xs text-muted-foreground/70">段落</div>
+              <div className="text-xs text-muted-foreground/70">{t('sidebar.paragraphs')}</div>
             </div>
 
             <div className="text-center group cursor-default">
@@ -392,7 +392,7 @@ export default function DocumentSidebar({ onClose, documentContent }: DocumentSi
                 <div className="w-1 h-1 rounded-full bg-indigo-500/60"></div>
                 <span className="text-sm font-medium text-muted-foreground">{documentStats.headings}</span>
               </div>
-              <div className="text-xs text-muted-foreground/70">标题</div>
+              <div className="text-xs text-muted-foreground/70">{t('sidebar.headings')}</div>
             </div>
 
             {/* Conditional stats - only show if > 0 */}
@@ -402,7 +402,7 @@ export default function DocumentSidebar({ onClose, documentContent }: DocumentSi
                   <div className="w-1 h-1 rounded-full bg-pink-500/60"></div>
                   <span className="text-sm font-medium text-muted-foreground">{documentStats.images}</span>
                 </div>
-                <div className="text-xs text-muted-foreground/70">图片</div>
+                <div className="text-xs text-muted-foreground/70">{t('sidebar.images')}</div>
               </div>
             )}
 
@@ -412,7 +412,7 @@ export default function DocumentSidebar({ onClose, documentContent }: DocumentSi
                   <div className="w-1 h-1 rounded-full bg-cyan-500/60"></div>
                   <span className="text-sm font-medium text-muted-foreground">{documentStats.links}</span>
                 </div>
-                <div className="text-xs text-muted-foreground/70">链接</div>
+                <div className="text-xs text-muted-foreground/70">{t('sidebar.links')}</div>
               </div>
             )}
 
@@ -422,7 +422,7 @@ export default function DocumentSidebar({ onClose, documentContent }: DocumentSi
                   <div className="w-1 h-1 rounded-full bg-yellow-500/60"></div>
                   <span className="text-sm font-medium text-muted-foreground">{documentStats.lists}</span>
                 </div>
-                <div className="text-xs text-muted-foreground/70">列表</div>
+                <div className="text-xs text-muted-foreground/70">{t('sidebar.lists')}</div>
               </div>
             )}
 
@@ -432,7 +432,7 @@ export default function DocumentSidebar({ onClose, documentContent }: DocumentSi
                   <div className="w-1 h-1 rounded-full bg-teal-500/60"></div>
                   <span className="text-sm font-medium text-muted-foreground">{documentStats.quotes}</span>
                 </div>
-                <div className="text-xs text-muted-foreground/70">引用</div>
+                <div className="text-xs text-muted-foreground/70">{t('sidebar.quotes')}</div>
               </div>
             )}
           </div>
@@ -454,11 +454,11 @@ export default function DocumentSidebar({ onClose, documentContent }: DocumentSi
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                 </svg>
               </div>
-              <span className="text-xs font-semibold text-primary">智能总结</span>
-              <span className="text-xs px-2 py-0.5 bg-primary/10 text-primary rounded-full font-medium">即将推出</span>
+              <span className="text-xs font-semibold text-primary">{t('sidebar.smartSummary')}</span>
+              <span className="text-xs px-2 py-0.5 bg-primary/10 text-primary rounded-full font-medium">{t('sidebar.comingSoon')}</span>
             </div>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              AI 驱动的文档摘要和关键点提取功能正在开发中，敬请期待后续版本更新。
+              {t('sidebar.aiSummaryDescription')}
             </p>
           </div>
         </div>

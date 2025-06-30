@@ -3,6 +3,7 @@
     "share": "分享",
     "download": "下载",
     "save": "保存",
+    "saving": "保存中...",
     "cancel": "取消",
     "close": "关闭",
     "search": "搜索",
@@ -13,6 +14,7 @@
   },
   "document": {
     "title": "欢迎使用 Aura 富文本编辑器",
+    "untitled": "未命名文档",
     "lastSaved": "最后保存",
     "autoSave": "自动保存",
     "documentOutline": "文档大纲",
@@ -114,7 +116,24 @@
     "searchInDocument": "在文档中搜索",
     "searchPlaceholder": "搜索标题...",
     "closeSidebar": "关闭侧边栏",
-    "openSidebar": "打开侧边栏"
+    "openSidebar": "打开侧边栏",
+    "hideSearch": "隐藏搜索",
+    "searchHeadings": "搜索标题",
+    "expandedMode": "展开模式",
+    "compactMode": "紧凑模式",
+    "words": "字数",
+    "characters": "字符",
+    "minutes": "分钟",
+    "sentences": "句子",
+    "paragraphs": "段落",
+    "headings": "标题",
+    "images": "图片",
+    "links": "链接",
+    "lists": "列表",
+    "quotes": "引用",
+    "smartSummary": "智能总结",
+    "comingSoon": "即将推出",
+    "aiSummaryDescription": "AI 驱动的文档摘要和关键点提取功能正在开发中，敬请期待后续版本更新。"
   },
   "theme": {
     "light": "浅色",
@@ -133,7 +152,8 @@
     "move": "移动",
     "copy": "复制",
     "cut": "剪切",
-    "paste": "粘贴"
+    "paste": "粘贴",
+    "resetToWelcome": "清空内容并显示欢迎文本"
   },
   "notifications": {
     "documentSaved": "文档保存成功",
@@ -141,7 +161,8 @@
     "documentExported": "文档导出成功",
     "documentExportedError": "文档导出失败",
     "linkCopied": "链接已复制到剪贴板",
-    "linkCopiedError": "复制链接失败"
+    "linkCopiedError": "复制链接失败",
+    "contentReset": "内容已重置为欢迎文本"
   },
   "toast": {
     "copied": "已复制到剪贴板",
@@ -150,5 +171,47 @@
     "undo": "已撤销操作",
     "redo": "已重做操作",
     "pasteError": "粘贴失败，请使用 Ctrl+V"
+  },
+  "prompts": {
+    "enterLinkUrl": "请输入链接地址:",
+    "enterImageUrl": "请输入图片地址:",
+    "enterTableRows": "请输入行数:",
+    "enterTableCols": "请输入列数:",
+    "enterSearchText": "请输入要查找的文本:",
+    "enterReplaceText": "请输入要替换的文本:",
+    "tableCell": "单元格"
+  },
+  "alerts": {
+    "textFound": "找到文本 \"{query}\" 在位置 {index}",
+    "textNotFound": "未找到文本 \"{query}\""
+  },
+  "welcome": {
+    "title": "欢迎使用 Aura Editor",
+    "subtitle": "现代化富文本编辑器",
+    "description": "专为高效写作设计，提供丰富功能和优雅体验。",
+    "features": {
+      "richText": {
+        "title": "富文本编辑",
+        "description": "支持完整的文本格式和样式"
+      },
+      "smartOutline": {
+        "title": "智能大纲", 
+        "description": "自动生成文档结构导航"
+      },
+      "realTimeStats": {
+        "title": "实时统计",
+        "description": "字数统计和阅读时间估算"
+      },
+      "themeToggle": {
+        "title": "主题切换",
+        "description": "深色浅色主题自由切换"
+      },
+      "multiLanguage": {
+        "title": "多语言支持",
+        "description": "中英文界面完美支持"
+      }
+    },
+    "dontShowAgain": "不再显示此窗口",
+    "getStarted": "开始使用"
   }
 } 

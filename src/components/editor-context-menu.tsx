@@ -41,6 +41,7 @@ import {
   ZoomIn,
   ZoomOut,
   Replace,
+  Plus,
 } from "lucide-react"
 
 interface EditorContextMenuProps {
@@ -122,7 +123,7 @@ export default function EditorContextMenu({
         {children}
       </ContextMenuTrigger>
       <ContextMenuContent className="w-56">
-        {/* 常用操作 */}
+        {/* Common operations */}
         <ContextMenuItem onClick={onUndo} disabled={!canUndo}>
           <Undo className="mr-2 h-4 w-4" />
           {t('contextMenu.undo')}
@@ -155,7 +156,7 @@ export default function EditorContextMenu({
           <ContextMenuShortcut>Ctrl+A</ContextMenuShortcut>
         </ContextMenuItem>
         <ContextMenuSeparator />
-        {/* 格式 二级菜单 */}
+        {/* Format submenu */}
         <ContextMenuSub>
           <ContextMenuSubTrigger>
             <Bold className="mr-2 h-4 w-4" />
@@ -182,7 +183,7 @@ export default function EditorContextMenu({
               {t('contextMenu.strikethrough')}
             </ContextMenuItem>
             <ContextMenuSeparator />
-            {/* 对齐方式 三级菜单 */}
+            {/* Alignment submenu */}
             <ContextMenuSub>
               <ContextMenuSubTrigger>
                 <AlignLeft className="mr-2 h-4 w-4" />
@@ -208,13 +209,25 @@ export default function EditorContextMenu({
               </ContextMenuSubContent>
             </ContextMenuSub>
             <ContextMenuSeparator />
-            <ContextMenuItem onClick={onRemoveFormatting}>
-              <RemoveFormatting className="mr-2 h-4 w-4" />
-              {t('contextMenu.removeFormatting')}
+            <ContextMenuItem onClick={onBulletList}>
+              <List className="mr-2 h-4 w-4" />
+              {t('contextMenu.bulletList')}
+            </ContextMenuItem>
+            <ContextMenuItem onClick={onNumberedList}>
+              <ListOrdered className="mr-2 h-4 w-4" />
+              {t('contextMenu.numberedList')}
+            </ContextMenuItem>
+            <ContextMenuItem onClick={onQuote}>
+              <Quote className="mr-2 h-4 w-4" />
+              {t('contextMenu.quote')}
+            </ContextMenuItem>
+            <ContextMenuItem onClick={onCode}>
+              <Code className="mr-2 h-4 w-4" />
+              {t('contextMenu.code')}
             </ContextMenuItem>
           </ContextMenuSubContent>
         </ContextMenuSub>
-        {/* 插入 二级菜单 */}
+        {/* Insert submenu */}
         <ContextMenuSub>
           <ContextMenuSubTrigger>
             <Link className="mr-2 h-4 w-4" />
@@ -233,25 +246,9 @@ export default function EditorContextMenu({
               <Table className="mr-2 h-4 w-4" />
               {t('contextMenu.table')}
             </ContextMenuItem>
-            <ContextMenuItem onClick={onCode}>
-              <Code className="mr-2 h-4 w-4" />
-              {t('contextMenu.code')}
-            </ContextMenuItem>
-            <ContextMenuItem onClick={onQuote}>
-              <Quote className="mr-2 h-4 w-4" />
-              {t('contextMenu.quote')}
-            </ContextMenuItem>
-            <ContextMenuItem onClick={onBulletList}>
-              <List className="mr-2 h-4 w-4" />
-              {t('contextMenu.bulletList')}
-            </ContextMenuItem>
-            <ContextMenuItem onClick={onNumberedList}>
-              <ListOrdered className="mr-2 h-4 w-4" />
-              {t('contextMenu.numberedList')}
-            </ContextMenuItem>
           </ContextMenuSubContent>
         </ContextMenuSub>
-        {/* 查找/替换 二级菜单 */}
+        {/* Search/Replace submenu */}
         <ContextMenuSub>
           <ContextMenuSubTrigger>
             <Search className="mr-2 h-4 w-4" />
@@ -270,11 +267,11 @@ export default function EditorContextMenu({
             </ContextMenuItem>
           </ContextMenuSubContent>
         </ContextMenuSub>
-        {/* 缩进 二级菜单 */}
+        {/* Indent submenu */}
         <ContextMenuSub>
           <ContextMenuSubTrigger>
             <Indent className="mr-2 h-4 w-4" />
-            {t('contextMenu.indent')}/{t('contextMenu.outdent')}
+            {t('contextMenu.indent')}
           </ContextMenuSubTrigger>
           <ContextMenuSubContent>
             <ContextMenuItem onClick={onIndent}>
@@ -285,9 +282,13 @@ export default function EditorContextMenu({
               <Outdent className="mr-2 h-4 w-4" />
               {t('contextMenu.outdent')}
             </ContextMenuItem>
+            <ContextMenuItem onClick={onRemoveFormatting}>
+              <RemoveFormatting className="mr-2 h-4 w-4" />
+              {t('contextMenu.removeFormatting')}
+            </ContextMenuItem>
           </ContextMenuSubContent>
         </ContextMenuSub>
-        {/* 缩放 二级菜单 */}
+        {/* Zoom submenu */}
         <ContextMenuSub>
           <ContextMenuSubTrigger>
             <ZoomIn className="mr-2 h-4 w-4" />

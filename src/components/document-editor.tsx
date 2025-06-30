@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Share2, Download, Star, Clock, MoreHorizontal, Menu } from "lucide-react"
+import { Share2, Download, Star, Clock, MoreHorizontal, Menu, Save, RotateCcw } from "lucide-react"
 import DocumentSidebar from "./document-sidebar"
 import RichTextEditor from "./rich-text-editor"
 import EditorContextMenu from "./editor-context-menu"
@@ -13,6 +13,22 @@ import { LanguageToggle } from "./language-toggle"
 import { toast } from "sonner"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import WelcomeDialog from "./welcome-dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+
+// localStorage 键名常量
+const STORAGE_KEYS = {
+  DOCUMENT_CONTENT: 'aura-editor-document-content',
+  DOCUMENT_TITLE: 'aura-editor-document-title',
+  LAST_SAVED: 'aura-editor-last-saved',
+  FIRST_TIME_USER: 'aura-editor-first-time-user',
+  USER_HAS_EDITED: 'aura-editor-user-has-edited' // 新增：标记用户是否真正编辑过
+}
 
 // 中英文版本的编辑器介绍内容
 const getWelcomeContent = (language: string) => {
@@ -122,21 +138,190 @@ export default function DocumentEditor() {
   const [isEditing, setIsEditing] = useState(false)
   const [lastSaved, setLastSaved] = useState<Date>()
   const [showWelcomeDialog, setShowWelcomeDialog] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [isI18nReady, setIsI18nReady] = useState(false)
+  const [isInitialLoad, setIsInitialLoad] = useState(true) // 添加初始加载状态
+  const [hasUserEdited, setHasUserEdited] = useState(false) // 用户是否真正编辑过
+  const [isDirty, setIsDirty] = useState(false) // 文档是否有未保存的更改
   
   // 初始化为空字符串，然后在useEffect中设置欢迎内容
   const [documentContent, setDocumentContent] = useState('')
   const titleInputRef = useRef<HTMLInputElement>(null)
   const editorRef = useRef<any>(null)
+  const autoSaveTimeoutRef = useRef<number | null>(null)
 
   // 右键菜单状态
   const [hasSelection, setHasSelection] = useState(false)
   const [zoomLevel, setZoomLevel] = useState(100)
 
-  // 初始化欢迎内容
-  useEffect(() => {
-    const welcomeContent = getWelcomeContent(i18n.language || 'zh')
-    setDocumentContent(welcomeContent)
+  // 保存到 localStorage 的函数
+  const saveToLocalStorage = useCallback((content?: string, title?: string, isAutoSave = false) => {
+    try {
+      if (isAutoSave) {
+        setIsSaving(false) // 自动保存不显示保存中状态
+      } else {
+        setIsSaving(true)
+      }
+      
+      if (content !== undefined) {
+        localStorage.setItem(STORAGE_KEYS.DOCUMENT_CONTENT, content)
+      }
+      
+      if (title !== undefined) {
+        localStorage.setItem(STORAGE_KEYS.DOCUMENT_TITLE, title)
+      }
+      
+      const now = new Date()
+      localStorage.setItem(STORAGE_KEYS.LAST_SAVED, now.toISOString())
+      setLastSaved(now)
+      
+      // 只有在用户真正编辑过后才标记不再是首次使用者
+      const userHasEdited = localStorage.getItem(STORAGE_KEYS.USER_HAS_EDITED) === 'true'
+      if (userHasEdited && !isInitialLoad) {
+        localStorage.setItem(STORAGE_KEYS.FIRST_TIME_USER, 'false')
+      }
+      
+      // 清除dirty状态
+      setIsDirty(false)
+      
+      // 只有手动保存才显示成功提示
+      if (!isAutoSave) {
+        toast.success(t('notifications.documentSaved'))
+      }
+    } catch (error) {
+      console.error('保存到 localStorage 失败:', error)
+      if (!isAutoSave) {
+        toast.error(t('notifications.documentSavedError'))
+      }
+    } finally {
+      if (!isAutoSave) {
+        setIsSaving(false)
+      }
+    }
+  }, [t, isInitialLoad])
+
+  // 从 localStorage 读取数据的函数
+  const loadFromLocalStorage = useCallback((currentLanguage?: string) => {
+    try {
+      const savedContent = localStorage.getItem(STORAGE_KEYS.DOCUMENT_CONTENT)
+      const savedTitle = localStorage.getItem(STORAGE_KEYS.DOCUMENT_TITLE)
+      const savedLastSaved = localStorage.getItem(STORAGE_KEYS.LAST_SAVED)
+      const isFirstTimeUser = !localStorage.getItem(STORAGE_KEYS.FIRST_TIME_USER)
+      const userHasEdited = localStorage.getItem(STORAGE_KEYS.USER_HAS_EDITED) === 'true'
+      
+      // 判断是否应该显示欢迎内容
+      const shouldShowWelcome = !userHasEdited && (!savedContent || savedContent.trim() === '')
+      
+      if (shouldShowWelcome) {
+        // 显示欢迎内容（根据当前语言）
+        const language = currentLanguage || i18n.language || 'zh'
+        const welcomeContent = getWelcomeContent(language)
+        setDocumentContent(welcomeContent)
+        setHasUserEdited(false) // 显示欢迎内容不算用户编辑
+      } else if (savedContent) {
+        // 有保存的内容，直接加载
+        setDocumentContent(savedContent)
+        setHasUserEdited(userHasEdited)
+      } else {
+        // 没有保存的内容，显示空内容
+        setDocumentContent('')
+        setHasUserEdited(userHasEdited)
+      }
+      
+      if (savedTitle) {
+        setDocumentTitle(savedTitle)
+      }
+      
+      if (savedLastSaved) {
+        setLastSaved(new Date(savedLastSaved))
+        setIsDirty(false) // 刚加载的内容不是dirty的
+      }
+      
+      // 标记初始加载完成
+      setTimeout(() => setIsInitialLoad(false), 1000)
+    } catch (error) {
+      console.error('从 localStorage 读取数据失败:', error)
+      // 如果读取失败，根据是否首次使用决定显示什么
+      const userHasEdited = localStorage.getItem(STORAGE_KEYS.USER_HAS_EDITED) === 'true'
+      const shouldShowWelcome = !userHasEdited
+      
+      if (shouldShowWelcome) {
+        const language = currentLanguage || i18n.language || 'zh'
+        const welcomeContent = getWelcomeContent(language)
+        setDocumentContent(welcomeContent)
+        setHasUserEdited(false)
+      } else {
+        setDocumentContent('')
+        setHasUserEdited(userHasEdited)
+      }
+      
+      // 标记初始加载完成
+      setTimeout(() => setIsInitialLoad(false), 1000)
+    }
   }, [i18n.language])
+
+  // 清除用户编辑状态，重新显示欢迎内容
+  const resetToWelcomeContent = useCallback(() => {
+    localStorage.removeItem(STORAGE_KEYS.USER_HAS_EDITED)
+    localStorage.removeItem(STORAGE_KEYS.DOCUMENT_CONTENT)
+    setHasUserEdited(false)
+    setIsDirty(false)
+    
+    // 重新加载欢迎内容
+    const language = i18n.language || 'zh'
+    const welcomeContent = getWelcomeContent(language)
+    setDocumentContent(welcomeContent)
+    
+    // 清除自动保存定时器
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current)
+    }
+    
+    toast.success(t('notifications.contentReset'))
+  }, [i18n.language, t])
+
+  // 手动保存函数
+  const handleManualSave = useCallback(() => {
+    saveToLocalStorage(documentContent, documentTitle, false)
+  }, [saveToLocalStorage, documentContent, documentTitle])
+
+  // 监听i18n初始化状态
+  useEffect(() => {
+    if (i18n.isInitialized && i18n.language) {
+      setIsI18nReady(true)
+    }
+  }, [i18n.isInitialized, i18n.language])
+
+  // 初始化加载数据 - 等待i18n准备完成
+  useEffect(() => {
+    if (isI18nReady) {
+      loadFromLocalStorage(i18n.language)
+    }
+  }, [isI18nReady, loadFromLocalStorage, i18n.language])
+
+  // 处理语言变化时的欢迎内容更新
+  useEffect(() => {
+    if (!isI18nReady) return // 等待i18n初始化完成
+    
+    const userHasEdited = localStorage.getItem(STORAGE_KEYS.USER_HAS_EDITED) === 'true'
+    const savedContent = localStorage.getItem(STORAGE_KEYS.DOCUMENT_CONTENT)
+    
+    // 只有在用户还没有真正编辑过的情况下才切换语言时更新欢迎内容
+    const shouldShowWelcome = !userHasEdited && (!savedContent || savedContent.trim() === '')
+    
+    if (shouldShowWelcome) {
+      const welcomeContent = getWelcomeContent(i18n.language || 'zh')
+      
+      // 临时设置为初始加载状态，避免触发自动保存
+      const originalInitialLoad = isInitialLoad
+      setIsInitialLoad(true)
+      
+      setDocumentContent(welcomeContent)
+      
+      // 500ms后恢复初始加载状态
+      setTimeout(() => setIsInitialLoad(originalInitialLoad), 500)
+    }
+  }, [i18n.language, isI18nReady, isInitialLoad])
 
   // 检查是否显示欢迎窗口
   useEffect(() => {
@@ -157,7 +342,8 @@ export default function DocumentEditor() {
 
   const handleTitleSave = () => {
     setIsEditing(false)
-    setLastSaved(new Date())
+    // 保存标题到 localStorage
+    saveToLocalStorage(undefined, documentTitle, false)
   }
 
   const handleTitleKeyDown = (e: React.KeyboardEvent) => {
@@ -171,7 +357,62 @@ export default function DocumentEditor() {
 
   const handleContentChange = useCallback((content: string) => {
     setDocumentContent(content)
-    setLastSaved(new Date())
+    
+    // 如果是初始加载期间，不触发自动保存和dirty状态
+    if (isInitialLoad) {
+      return
+    }
+    
+    // 检查是否是欢迎内容 - 更准确的检测
+    const isWelcomeContent = content.includes('欢迎使用 Aura Editor') || 
+                            content.includes('Welcome to Aura Editor') ||
+                            content.includes('🎉 编辑器介绍') ||
+                            content.includes('🎉 Editor Introduction')
+    
+    // 只有当内容不是欢迎内容且不为空时，才标记用户已编辑过
+    if (content.trim() && !isWelcomeContent && !hasUserEdited) {
+      setHasUserEdited(true)
+      // 永久标记用户已编辑过
+      localStorage.setItem(STORAGE_KEYS.USER_HAS_EDITED, 'true')
+    }
+    
+    // 设置dirty状态（除非是欢迎内容）
+    if (!isWelcomeContent) {
+      setIsDirty(true)
+    }
+    
+    // 清除之前的自动保存定时器
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current)
+    }
+    
+    // 设置新的自动保存定时器（5秒防抖，减少频率）
+    // 只有非欢迎内容才自动保存
+    if (!isWelcomeContent) {
+      autoSaveTimeoutRef.current = setTimeout(() => {
+        saveToLocalStorage(content, undefined, true)
+      }, 5000)
+    }
+  }, [saveToLocalStorage, isInitialLoad, hasUserEdited])
+
+  // 组件卸载时清理定时器
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current)
+      }
+    }
+  }, [])
+
+  // 监听选择变化
+  useEffect(() => {
+    const handleSelectionChange = () => {
+      const selection = window.getSelection()
+      setHasSelection(selection ? selection.toString().length > 0 : false)
+    }
+
+    document.addEventListener('selectionchange', handleSelectionChange)
+    return () => document.removeEventListener('selectionchange', handleSelectionChange)
   }, [])
 
   // 右键菜单处理函数
@@ -285,22 +526,22 @@ export default function DocumentEditor() {
   }
 
   const handleLink = () => {
-    const url = prompt('请输入链接地址:')
+    const url = prompt(t('prompts.enterLinkUrl'))
     if (url) {
       document.execCommand('createLink', false, url)
     }
   }
 
   const handleImage = () => {
-    const url = prompt('请输入图片地址:')
+    const url = prompt(t('prompts.enterImageUrl'))
     if (url) {
       document.execCommand('insertImage', false, url)
     }
   }
 
   const handleTable = () => {
-    const rows = prompt('请输入行数:', '3')
-    const cols = prompt('请输入列数:', '3')
+    const rows = prompt(t('prompts.enterTableRows'), '3')
+    const cols = prompt(t('prompts.enterTableCols'), '3')
     if (rows && cols) {
       const table = document.createElement('table')
       table.style.borderCollapse = 'collapse'
@@ -312,7 +553,7 @@ export default function DocumentEditor() {
           const td = document.createElement('td')
           td.style.border = '1px solid #ccc'
           td.style.padding = '8px'
-          td.textContent = `单元格 ${i+1}-${j+1}`
+          td.textContent = `${t('prompts.tableCell')} ${i+1}-${j+1}`
           tr.appendChild(td)
         }
         table.appendChild(tr)
@@ -323,22 +564,22 @@ export default function DocumentEditor() {
   }
 
   const handleFind = () => {
-    const query = prompt('请输入要查找的文本:')
+    const query = prompt(t('prompts.enterSearchText'))
     if (query) {
       // 简单的查找实现
       const text = document.querySelector('[contenteditable="true"]')?.textContent || ''
       const index = text.indexOf(query)
       if (index !== -1) {
-        alert(`找到文本 "${query}" 在位置 ${index}`)
+        alert(t('alerts.textFound', { query, index }))
       } else {
-        alert(`未找到文本 "${query}"`)
+        alert(t('alerts.textNotFound', { query }))
       }
     }
   }
 
   const handleReplace = () => {
-    const find = prompt('请输入要查找的文本:')
-    const replace = prompt('请输入要替换的文本:')
+    const find = prompt(t('prompts.enterSearchText'))
+    const replace = prompt(t('prompts.enterReplaceText'))
     if (find && replace) {
       const editor = document.querySelector('[contenteditable="true"]')
       if (editor) {
@@ -371,30 +612,38 @@ export default function DocumentEditor() {
     setZoomLevel(100)
   }
 
-  // 监听选择变化
+  // 添加键盘快捷键监听
   useEffect(() => {
-    const handleSelectionChange = () => {
-      const selection = window.getSelection()
-      setHasSelection(selection ? selection.toString().length > 0 : false)
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl+S 或 Cmd+S 保存
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault()
+        handleManualSave()
+      }
     }
 
-    document.addEventListener('selectionchange', handleSelectionChange)
-    return () => document.removeEventListener('selectionchange', handleSelectionChange)
-  }, [])
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [handleManualSave])
 
+  // 添加浏览器离开提示
   useEffect(() => {
-    setLastSaved(new Date())
-    const interval = setInterval(() => {
-      setLastSaved(new Date())
-    }, 30000) // Auto-save every 30 seconds
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault()
+        e.returnValue = '您有未保存的更改，确定要离开吗？'
+        return '您有未保存的更改，确定要离开吗？'
+      }
+    }
 
-    return () => clearInterval(interval)
-  }, [])
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [isDirty])
 
   return (
     <div className="flex flex-col h-screen bg-background">
       {/* Header */}
-      <header className="flex items-center justify-between px-3 sm:px-4 py-2 sm:py-3 border-b bg-background/95 backdrop-blur-sm sticky top-0 z-50">
+      <header className="flex items-center justify-between px-3 sm:px-4 py-2 sm:py-3 toolbar-glass sticky top-0 z-50">
         <div className="flex items-center space-x-2 sm:space-x-4 flex-1 min-w-0">
           <Button 
             variant="ghost" 
@@ -418,21 +667,34 @@ export default function DocumentEditor() {
                   onChange={(e) => setDocumentTitle(e.target.value)}
                   onBlur={handleTitleSave}
                   onKeyDown={handleTitleKeyDown}
-                  placeholder={i18n.language === 'zh' ? '未命名文档' : 'Untitled Document'}
+                  placeholder={t('document.untitled')}
                   className="text-sm sm:text-lg font-semibold border-none p-0 h-auto focus-visible:ring-0 bg-muted px-2 py-1 rounded max-w-xs"
                 />
               ) : (
                 <h1
                   className="text-sm sm:text-lg font-semibold cursor-pointer hover:bg-muted px-2 py-1 rounded truncate max-w-xs"
                   onClick={handleTitleEdit}
-                  title={documentTitle || (i18n.language === 'zh' ? '未命名文档' : 'Untitled Document')}
+                  title={documentTitle || t('document.untitled')}
                 >
-                  {documentTitle || (i18n.language === 'zh' ? '未命名文档' : 'Untitled Document')}
+                  {documentTitle || t('document.untitled')}
                 </h1>
               )}
               <div className="hidden sm:flex items-center space-x-2 text-xs text-muted-foreground">
                 <Clock className="w-3 h-3" />
-                {lastSaved && <span>{t('document.lastSaved')} {lastSaved.toLocaleTimeString()}</span>}
+                {lastSaved && (
+                  <div className="flex items-center space-x-1">
+                    <span>{t('document.lastSaved')} {lastSaved.toLocaleTimeString()}</span>
+                    {isSaving && (
+                      <span className="text-blue-500 text-xs">{t('common.saving')}</span>
+                    )}
+                    {!isSaving && isDirty && (
+                      <span className="text-orange-500 text-xs" title="有未保存的更改">●</span>
+                    )}
+                    {!isSaving && !isDirty && lastSaved && (
+                      <span className="text-green-500 text-xs" title="已保存">✓</span>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -441,6 +703,23 @@ export default function DocumentEditor() {
         <div className="flex items-center space-x-1 sm:space-x-3 shrink-0">
           {/* 移动端只显示核心功能 */}
           <div className="flex items-center space-x-1 sm:hidden">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={handleManualSave}
+                  disabled={isSaving}
+                  className="p-2"
+                >
+                  <Save className={`w-4 h-4 ${isSaving ? 'animate-spin' : ''}`} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{t('common.save')}</p>
+              </TooltipContent>
+            </Tooltip>
+            
             <LanguageToggle />
             <ThemeToggle />
             
@@ -448,13 +727,50 @@ export default function DocumentEditor() {
               <Share2 className="w-3 h-3" />
             </Button>
 
-            <Button variant="ghost" size="sm" className="p-2">
-              <MoreHorizontal className="w-4 h-4" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="p-2">
+                  <MoreHorizontal className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={resetToWelcomeContent}>
+                  <RotateCcw className="w-4 h-4 mr-2" />
+                  {t('actions.resetToWelcome')}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <Download className="w-4 h-4 mr-2" />
+                  {t('common.download')}
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Star className="w-4 h-4 mr-2" />
+                  {t('actions.star')}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           {/* 桌面端显示完整功能 */}
           <div className="hidden sm:flex items-center space-x-3">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={handleManualSave}
+                  disabled={isSaving}
+                  className="flex items-center space-x-2"
+                >
+                  <Save className={`w-4 h-4 ${isSaving ? 'animate-spin' : ''}`} />
+                  <span className="hidden md:inline">{isSaving ? t('common.saving') : t('common.save')}</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{t('common.save')}</p>
+              </TooltipContent>
+            </Tooltip>
+            
             <LanguageToggle />
             <ThemeToggle />
             
@@ -485,16 +801,28 @@ export default function DocumentEditor() {
               {t('common.share')}
             </Button>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm">
                   <MoreHorizontal className="w-4 h-4" />
                 </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{t('common.more')}</p>
-              </TooltipContent>
-            </Tooltip>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={resetToWelcomeContent}>
+                  <RotateCcw className="w-4 h-4 mr-2" />
+                  {t('actions.resetToWelcome')}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <Download className="w-4 h-4 mr-2" />
+                  {t('common.download')}
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Star className="w-4 h-4 mr-2" />
+                  {t('actions.star')}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </header>
@@ -578,7 +906,11 @@ export default function DocumentEditor() {
       {/* 欢迎窗口 */}
       <WelcomeDialog 
         isOpen={showWelcomeDialog}
-        onClose={() => setShowWelcomeDialog(false)}
+        onClose={() => {
+          setShowWelcomeDialog(false)
+          // 标记用户不再是首次使用者，避免重复显示欢迎内容
+          localStorage.setItem(STORAGE_KEYS.FIRST_TIME_USER, 'false')
+        }}
       />
     </div>
   )

@@ -3,6 +3,7 @@
     "share": "Share",
     "download": "Download",
     "save": "Save",
+    "saving": "Saving...",
     "cancel": "Cancel",
     "close": "Close",
     "search": "Search",
@@ -13,6 +14,7 @@
   },
   "document": {
     "title": "Welcome to Aura Rich Text Editor",
+    "untitled": "Untitled Document",
     "lastSaved": "Last saved",
     "autoSave": "Auto-save",
     "documentOutline": "Document Outline",
@@ -114,7 +116,24 @@
     "searchInDocument": "Search in document",
     "searchPlaceholder": "Search headings...",
     "closeSidebar": "Close sidebar",
-    "openSidebar": "Open sidebar"
+    "openSidebar": "Open sidebar",
+    "hideSearch": "Hide search",
+    "searchHeadings": "Search headings",
+    "expandedMode": "Expanded mode",
+    "compactMode": "Compact mode",
+    "words": "Words",
+    "characters": "Characters",
+    "minutes": "Minutes",
+    "sentences": "Sentences",
+    "paragraphs": "Paragraphs",
+    "headings": "Headings",
+    "images": "Images",
+    "links": "Links",
+    "lists": "Lists",
+    "quotes": "Quotes",
+    "smartSummary": "Smart Summary",
+    "comingSoon": "Coming Soon",
+    "aiSummaryDescription": "AI-powered document summarization and key point extraction features are under development. Stay tuned for future updates."
   },
   "theme": {
     "light": "Light",
@@ -133,7 +152,8 @@
     "move": "Move",
     "copy": "Copy",
     "cut": "Cut",
-    "paste": "Paste"
+    "paste": "Paste",
+    "resetToWelcome": "Clear content and show welcome text"
   },
   "notifications": {
     "documentSaved": "Document saved successfully",
@@ -141,7 +161,8 @@
     "documentExported": "Document exported successfully",
     "documentExportedError": "Failed to export document",
     "linkCopied": "Link copied to clipboard",
-    "linkCopiedError": "Failed to copy link"
+    "linkCopiedError": "Failed to copy link",
+    "contentReset": "Content reset to welcome text"
   },
   "toast": {
     "copied": "Copied to clipboard",
@@ -150,5 +171,47 @@
     "undo": "Action undone",
     "redo": "Action redone",
     "pasteError": "Paste failed, please use Ctrl+V"
+  },
+  "prompts": {
+    "enterLinkUrl": "Please enter the link URL:",
+    "enterImageUrl": "Please enter the image URL:",
+    "enterTableRows": "Please enter the number of rows:",
+    "enterTableCols": "Please enter the number of columns:",
+    "enterSearchText": "Please enter the text to search:",
+    "enterReplaceText": "Please enter the replacement text:",
+    "tableCell": "Cell"
+  },
+  "alerts": {
+    "textFound": "Found text \"{query}\" at position {index}",
+    "textNotFound": "Text \"{query}\" not found"
+  },
+  "welcome": {
+    "title": "Welcome to Aura Editor",
+    "subtitle": "Modern Rich Text Editor",
+    "description": "Designed for efficient writing with rich features and elegant experience.",
+    "features": {
+      "richText": {
+        "title": "Rich Text Editing",
+        "description": "Full text formatting and styling support"
+      },
+      "smartOutline": {
+        "title": "Smart Outline", 
+        "description": "Auto-generate document structure navigation"
+      },
+      "realTimeStats": {
+        "title": "Real-time Stats",
+        "description": "Word count and reading time estimation"
+      },
+      "themeToggle": {
+        "title": "Theme Toggle",
+        "description": "Switch between dark and light themes"
+      },
+      "multiLanguage": {
+        "title": "Multi-language",
+        "description": "Perfect support for Chinese and English"
+      }
+    },
+    "dontShowAgain": "Don't show this again",
+    "getStarted": "Get Started"
   }
 } 
