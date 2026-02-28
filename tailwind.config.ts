@@ -3,11 +3,7 @@ import type { Config } from "tailwindcss"
 const config = {
   darkMode: ["class"],
   content: [
-    "./pages/**/*.{ts,tsx}",
-    "./components/**/*.{ts,tsx}",
-    "./app/**/*.{ts,tsx}",
     "./src/**/*.{ts,tsx}",
-    "*.{js,ts,jsx,tsx,mdx}",
   ],
   prefix: "",
   theme: {
@@ -69,48 +65,22 @@ const config = {
           to: { height: "0" },
         },
         "fade-in": {
-          "0%": {
-            opacity: "0",
-            transform: "translateY(10px)",
-          },
-          "100%": {
-            opacity: "1",
-            transform: "translateY(0)",
-          },
+          "0%": { opacity: "0", transform: "translateY(10px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
         },
         "slide-in": {
-          "0%": {
-            opacity: "0",
-            transform: "translateX(-20px)",
-          },
-          "100%": {
-            opacity: "1",
-            transform: "translateX(0)",
-          },
+          "0%": { opacity: "0", transform: "translateX(-20px)" },
+          "100%": { opacity: "1", transform: "translateX(0)" },
         },
         pulse: {
-          "0%, 100%": {
-            opacity: "1",
-          },
-          "50%": {
-            opacity: "0.5",
-          },
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.5" },
         },
         "bounce-in": {
-          "0%": {
-            transform: "scale(0.3)",
-            opacity: "0",
-          },
-          "50%": {
-            transform: "scale(1.05)",
-          },
-          "70%": {
-            transform: "scale(0.9)",
-          },
-          "100%": {
-            transform: "scale(1)",
-            opacity: "1",
-          },
+          "0%": { transform: "scale(0.3)", opacity: "0" },
+          "50%": { transform: "scale(1.05)" },
+          "70%": { transform: "scale(0.9)" },
+          "100%": { transform: "scale(1)", opacity: "1" },
         },
       },
       animation: {
@@ -126,63 +96,15 @@ const config = {
           css: {
             maxWidth: "none",
             color: "hsl(var(--foreground))",
-            h1: {
-              color: "hsl(var(--foreground))",
-              fontWeight: "600",
-              fontSize: "2.25rem",
-              marginTop: "3rem",
-              marginBottom: "1.5rem",
-            },
-            h2: {
-              color: "hsl(var(--foreground))",
-              fontWeight: "600",
-              fontSize: "1.875rem",
-              marginTop: "2.5rem",
-              marginBottom: "1.25rem",
-            },
-            h3: {
-              color: "hsl(var(--foreground))",
-              fontWeight: "600",
-              fontSize: "1.5rem",
-              marginTop: "2rem",
-              marginBottom: "1rem",
-            },
-            p: {
-              color: "hsl(var(--muted-foreground))",
-              lineHeight: "1.75",
-              marginBottom: "1.5rem",
-            },
-            a: {
-              color: "hsl(var(--primary))",
-              textDecoration: "none",
-              "&:hover": {
-                textDecoration: "underline",
-              },
-            },
-            strong: {
-              color: "hsl(var(--foreground))",
-              fontWeight: "600",
-            },
-            code: {
-              color: "hsl(var(--foreground))",
-              backgroundColor: "hsl(var(--muted))",
-              padding: "0.25rem 0.5rem",
-              borderRadius: "0.25rem",
-              fontSize: "0.875rem",
-            },
-            pre: {
-              backgroundColor: "hsl(var(--muted))",
-              color: "hsl(var(--foreground))",
-              padding: "1.5rem",
-              borderRadius: "0.75rem",
-              overflow: "auto",
-            },
-            blockquote: {
-              borderLeftColor: "hsl(var(--primary))",
-              backgroundColor: "hsl(var(--muted) / 0.3)",
-              padding: "1rem 1.5rem",
-              borderRadius: "0 0.5rem 0.5rem 0",
-            },
+            h1: { color: "hsl(var(--foreground))", fontWeight: "600", fontSize: "2.25rem", marginTop: "3rem", marginBottom: "1.5rem" },
+            h2: { color: "hsl(var(--foreground))", fontWeight: "600", fontSize: "1.875rem", marginTop: "2.5rem", marginBottom: "1.25rem" },
+            h3: { color: "hsl(var(--foreground))", fontWeight: "600", fontSize: "1.5rem", marginTop: "2rem", marginBottom: "1rem" },
+            p: { color: "hsl(var(--muted-foreground))", lineHeight: "1.75", marginBottom: "1.5rem" },
+            a: { color: "hsl(var(--primary))", textDecoration: "none", "&:hover": { textDecoration: "underline" } },
+            strong: { color: "hsl(var(--foreground))", fontWeight: "600" },
+            code: { color: "hsl(var(--foreground))", backgroundColor: "hsl(var(--muted))", padding: "0.25rem 0.5rem", borderRadius: "0.25rem", fontSize: "0.875rem" },
+            pre: { backgroundColor: "hsl(var(--muted))", color: "hsl(var(--foreground))", padding: "1.5rem", borderRadius: "0.75rem", overflow: "auto" },
+            blockquote: { borderLeftColor: "hsl(var(--primary))", backgroundColor: "hsl(var(--muted) / 0.3)", padding: "1rem 1.5rem", borderRadius: "0 0.5rem 0.5rem 0" },
           },
         },
       },
